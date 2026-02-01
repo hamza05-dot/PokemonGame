@@ -46,6 +46,7 @@ PokéSearch is a comprehensive Pokémon information system that allows users to 
 
 ## 🗄 Database Schema
 ![Database Schema](Relational_1.png)
+
 The `pokedb.sql` file contains:
 
 ### Tables (8)
