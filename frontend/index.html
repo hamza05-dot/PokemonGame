@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PokéSearch - Advanced Pokémon Search Engine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Search and filter Pokémon by name, type, stats, and more">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app-container">
+    <h1>🔍 PokéSearch</h1>
+
+    <div class="search-card">
+        <div class="filter-grid">
+
+            <div class="input-group" style="grid-column: span 2;">
+                <label>🔍 ID or Name</label>
+                <input type="text" id="id-name-search" placeholder="25 or Pikachu" oninput="searchPokemon()">
+            </div>
+        </div>
+
+        <div class="filter-grid">
+            <div class="input-group">
+                <label>⚡ Type</label>
+                <select id="type-filter" onchange="searchPokemon()">
+                    <option value="">All Types</option>
+                    <option value="grass">🌿 Grass</option>
+                    <option value="fire">🔥 Fire</option>
+                    <option value="water">💧 Water</option>
+                    <option value="bug">🐛 Bug</option>
+                    <option value="normal">⚪ Normal</option>
+                    <option value="poison">☠️ Poison</option>
+                    <option value="electric">⚡ Electric</option>
+                    <option value="ground">🌍 Ground</option>
+                    <option value="fairy">🧚 Fairy</option>
+                    <option value="fighting">👊 Fighting</option>
+                    <option value="psychic">🔮 Psychic</option>
+                    <option value="rock">🪨 Rock</option>
+                    <option value="ghost">👻 Ghost</option>
+                    <option value="ice">❄️ Ice</option>
+                    <option value="dragon">🐉 Dragon</option>
+                    <option value="flying">🦅 Flying</option>
+                    <option value="steel">⚙️ Steel</option>
+                    <option value="dark">🌑 Dark</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>🗺️ Region</label>
+                <select id="region-filter" onchange="searchPokemon()">
+                    <option value="">All Regions</option>
+                    <option value="kanto">🏔️ Kanto</option>
+                    <option value="johto">🌸 Johto</option>
+                    <option value="hoenn">🌊 Hoenn</option>
+                    <option value="sinnoh">⛰️ Sinnoh</option>
+                    <option value="unova">🏙️ Unova</option>
+                    <option value="kalos">🗼 Kalos</option>
+                    <option value="alola">🏝️ Alola</option>
+                    <option value="galar">🏰 Galar</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>⭐ Legendary</label>
+                <select id="legendary-filter" onchange="searchPokemon()">
+                    <option value="">All</option>
+                    <option value="1">✨ Legendary Only</option>
+                    <option value="0">🎯 Non-Legendary</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>📊 Sort By</label>
+                <select id="sort-stat" onchange="searchPokemon()">
+                    <option value="id">🔢 Pokédex ID</option>
+                    <option value="name">🔤 Name (A-Z)</option>
+                    <option value="hp">❤️ HP (Highest)</option>
+                    <option value="attack">⚔️ Attack (Highest)</option>
+                    <option value="defense">🛡️ Defense (Highest)</option>
+                    <option value="sp_atk">✨ Sp. Atk (Highest)</option>
+                    <option value="sp_def">💫 Sp. Def (Highest)</option>
+                    <option value="speed">💨 Speed (Highest)</option>
+                    <option value="bst">💪 Total Stats (Highest)</option>
+                    <option value="height">📏 Height (Highest)</option>
+                    <option value="weight">⚖️ Weight (Highest)</option>
+                    <option value="catch_rate">🎣 Catch Rate (Highest)</option>
+                </select>
+            </div>
+        </div>
+<!-- Name Advanced Filters Toggle -->
+        <button class="name-advanced-toggle" onclick="toggleNameAdvancedFilters()" type="button">
+            <span id="name-toggle-text">▼ Advanced Name Filters</span>
+        </button>
+
+        <!-- Name Advanced Filters Section -->
+        <div id="name-advanced-filters" class="advanced-filters" style="display: none;">
+            <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 1.1rem;">📝 Advanced Name Filters</h3>
+            
+            <div class="filter-grid">
+                <div class="input-group">
+                    <label>▶️ Starts With</label>
+                    <input type="text" id="start" maxlength="1" placeholder="P" oninput="searchPokemon()">
+                </div>
+
+                <div class="input-group">
+                    <label>📝 Includes Letters</label>
+                    <input type="text" id="include" placeholder="abc" oninput="searchPokemon()">
+                </div>
+
+                <div class="input-group">
+                    <label>🚫 Excludes</label>
+                    <input type="text" id="exclude" placeholder="x, y, z" oninput="searchPokemon()">
+                </div>
+
+                <div class="input-group">
+                    <label>📍 Position</label>
+                    <input type="text" id="position" placeholder="_ i _ a _ _" oninput="searchPokemon()">
+                </div>
+
+                <div class="input-group">
+                    <label>📏 Name Length</label>
+                    <input type="number" id="length" placeholder="6" min="1" max="15" oninput="searchPokemon()">
+                </div>
+            </div>
+        </div>
+        <!-- Advanced Filters Toggle -->
+        <button class="advanced-toggle" onclick="toggleAdvancedFilters()" type="button">
+            <span id="toggle-text">▼ Show Advanced Filters</span>
+        </button>
+
+        <!-- Advanced Filters Section -->
+        <div id="advanced-filters" class="advanced-filters" style="display: none;">
+            <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 1.1rem;">🔧 Advanced Filters</h3>
+            
+            <div class="filter-grid">
+                <div class="input-group">
+                    <label>🎮 Generation</label>
+                    <select id="generation-filter" onchange="searchPokemon()">
+                        <option value="">All Generations</option>
+                        <option value="1">1️⃣ Gen 1 (Kanto)</option>
+                        <option value="2">2️⃣ Gen 2 (Johto)</option>
+                        <option value="3">3️⃣ Gen 3 (Hoenn)</option>
+                        <option value="4">4️⃣ Gen 4 (Sinnoh)</option>
+                        <option value="5">5️⃣ Gen 5 (Unova)</option>
+                        <option value="6">6️⃣ Gen 6 (Kalos)</option>
+                        <option value="7">7️⃣ Gen 7 (Alola)</option>
+                        <option value="8">8️⃣ Gen 8 (Galar)</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>🔄 Evolution Stage</label>
+                    <select id="evolution-filter" onchange="searchPokemon()">
+                        <option value="">All Stages</option>
+                        <option value="basic">🥚 Basic (Can Evolve)</option>
+                        <option value="evolves">🐛 Mid Evolution</option>
+                        <option value="final">🦋 Final Form</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>🎯 Catch Difficulty</label>
+                    <select id="catch-difficulty" onchange="searchPokemon()">
+                        <option value="">All Difficulties</option>
+                        <option value="easy">😊 Easy (100+)</option>
+                        <option value="medium">😐 Medium (50-99)</option>
+                        <option value="hard">😰 Hard (0-49)</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>💪 Ability Name</label>
+                    <input type="text" id="ability-search" placeholder="e.g., overgrow" oninput="searchPokemon()">
+                </div>
+
+                <div class="input-group">
+                    <label>📊 Min BST</label>
+                    <input type="number" id="min-bst" placeholder="e.g., 300" min="0" max="800" oninput="searchPokemon()">
+                </div>
+
+                <div class="input-group">
+                    <label>📊 Max BST</label>
+                    <input type="number" id="max-bst" placeholder="e.g., 500" min="0" max="800" oninput="searchPokemon()">
+                </div>
+
+                <div class="input-group">
+                    <label>📏 Min Height (m)</label>
+                    <input type="number" id="min-height" placeholder="e.g., 0.5" min="0" max="20" step="0.1" oninput="searchPokemon()">
+                </div>
+
+                <div class="input-group">
+                    <label>📏 Max Height (m)</label>
+                    <input type="number" id="max-height" placeholder="e.g., 3" min="0" max="20" step="0.1" oninput="searchPokemon()">
+                </div>
+
+                <div class="input-group">
+                    <label>⚖️ Min Weight (kg)</label>
+                    <input type="number" id="min-weight" placeholder="e.g., 5" min="0" max="1000" step="0.1" oninput="searchPokemon()">
+                </div>
+
+                <div class="input-group">
+                    <label>⚖️ Max Weight (kg)</label>
+                    <input type="number" id="max-weight" placeholder="e.g., 100" min="0" max="1000" step="0.1" oninput="searchPokemon()">
+                </div>
+
+                <div class="input-group" style="grid-column: span 2;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 0;">
+                        <input type="checkbox" id="dual-type-filter" onchange="searchPokemon()" style="width: auto; cursor: pointer;">
+                        <span>🔀 Dual-Type Only (Has 2 Types)</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <button class="clear-btn" onclick="clearFilters()">🗑️ Clear All Filters</button>
+        <p id="count-text"></p>
+    </div>
+
+    <div id="loading-spinner">
+        <div class="spinner"></div>
+    </div>
+    
+    <ul id="results"></ul>
+</div>
+
+<div id="pokeModal" class="modal" onclick="closeModal()">
+    <div id="modal-body" onclick="event.stopPropagation()"></div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
