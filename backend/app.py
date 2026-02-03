@@ -116,6 +116,25 @@ def get_pokemon_details(poke_id):
         }
         pokemon_data['region'] = region_map.get(pokemon_data.get('generation'), "Unknown")
 
+        # --- GET ABILITIES WITH FULL DATA (ID, NAME, DESCRIPTION) ---
+        cur.execute("""
+            SELECT a.id, a.name, a.description
+            FROM abilities a
+            JOIN pokemon_abilities pa ON a.id = pa.ability_id
+            WHERE pa.pokemon_id = :id
+            ORDER BY a.name
+        """, {"id": poke_id})
+        
+        abilities_data = []
+        for ability_row in cur.fetchall():
+            abilities_data.append({
+                "id": ability_row[0],
+                "name": ability_row[1],
+                "description": ability_row[2]
+            })
+        
+        pokemon_data['abilities_data'] = abilities_data
+
         # --- GET COMPLETE EVOLUTION CHAIN ---
         evolution_chain = get_complete_evolution_chain(cur, poke_id)
         pokemon_data['evolution_chain'] = evolution_chain
@@ -263,9 +282,110 @@ def format_requirements(requirements):
     
     return " + ".join(parts) if parts else "Unknown"
 
+
+
+# ========================
+# 3. API: GET ABILITY DETAILS
+# ========================
+@app.route("/api/abilities/<int:ability_id>")
+def get_ability_details(ability_id):
+    conn = get_connection()
+    if not conn:
+        return jsonify({"error": "DB Connection Failed"}), 500
+
+    cur = conn.cursor()
+    try:
+        # Get ability information
+        cur.execute("""
+            SELECT id, name, description
+            FROM abilities
+            WHERE id = :id
+        """, {"id": ability_id})
+        
+        ability_row = cur.fetchone()
+        if not ability_row:
+            return jsonify({"error": "Ability not found"}), 404
+        
+        ability_data = {
+            "id": ability_row[0],
+            "name": ability_row[1],
+            "description": ability_row[2]
+        }
+        
+        # Get all Pokemon with this ability
+        cur.execute("""
+            SELECT DISTINCT p.id, p.name, p.type1, p.type2
+            FROM POKEMON_MASTER_VIEW p
+            JOIN pokemon_abilities pa ON p.id = pa.pokemon_id
+            WHERE pa.ability_id = :ability_id
+            ORDER BY p.name
+        """, {"ability_id": ability_id})
+        
+        pokemon_list = []
+        for poke_row in cur.fetchall():
+            pokemon_list.append({
+                "id": poke_row[0],
+                "name": poke_row[1],
+                "type1": poke_row[2],
+                "type2": poke_row[3]
+            })
+        
+        ability_data['pokemon'] = pokemon_list
+        ability_data['pokemon_count'] = len(pokemon_list)
+        
+        return jsonify(ability_data)
+    
+    except Exception as e:
+        print(f"Error in get_ability_details: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
+# ========================
+# 4. API: GET ALL ABILITIES (for list/search)
+# ========================
+@app.route("/api/abilities")
+def get_all_abilities():
+    conn = get_connection()
+    if not conn:
+        return jsonify({"error": "DB Connection Failed"}), 500
+
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            SELECT a.id, a.name, a.description, COUNT(DISTINCT pa.pokemon_id) as pokemon_count
+            FROM abilities a
+            LEFT JOIN pokemon_abilities pa ON a.id = pa.ability_id
+            GROUP BY a.id, a.name, a.description
+            ORDER BY a.name
+        """)
+        
+        abilities = []
+        for row in cur.fetchall():
+            abilities.append({
+                "id": row[0],
+                "name": row[1],
+                "description": row[2],
+                "pokemon_count": row[3]
+            })
+        
+        return jsonify(abilities)
+    
+    except Exception as e:
+        print(f"Error in get_all_abilities: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
 # ========================
 # START SERVER
 # ========================
 if __name__ == "__main__":
     print("Starting Flask Server on http://127.0.0.1:5000")
-    app.run(debug=True, port=5000)
+    app.run(host="0.0.0.0", debug=True, port=5000)

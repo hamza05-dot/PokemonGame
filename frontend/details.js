@@ -72,7 +72,21 @@ function renderDetails(p) {
                 </div>
             </div>
 
-            ${p.abilities ? `
+            ${p.abilities_data && p.abilities_data.length > 0 ? `
+                <div class="info-card">
+                    <h2>⚡ Abilities</h2>
+                    <div class="abilities-list">
+                        ${p.abilities_data.map(a => `
+                            <span class="ability-badge clickable-ability" 
+                                  onclick="window.location.href='abilitie.html?id=${a.id}'"
+                                  data-description="${(a.description || 'No description available').replace(/"/g, '&quot;')}"
+                                  style="cursor: pointer;">
+                                ${a.name}
+                            </span>
+                        `).join('')}
+                    </div>
+                </div>
+            ` : p.abilities ? `
                 <div class="info-card">
                     <h2>⚡ Abilities</h2>
                     <div class="abilities-list">
@@ -109,7 +123,40 @@ function renderDetails(p) {
         document.querySelectorAll('.stat-fill').forEach(bar => {
             bar.style.width = bar.getAttribute('data-width');
         });
+        
+        // Initialize ability tooltips
+        initAbilityTooltips();
     }, 100);
+}
+
+function initAbilityTooltips() {
+    const abilities = document.querySelectorAll('.clickable-ability');
+    
+    abilities.forEach(ability => {
+        const description = ability.getAttribute('data-description');
+        
+        ability.addEventListener('mouseenter', (e) => {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'ability-tooltip';
+            tooltip.textContent = description;
+            tooltip.id = 'active-tooltip';
+            document.body.appendChild(tooltip);
+            
+            const rect = ability.getBoundingClientRect();
+            tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
+            tooltip.style.top = rect.top - tooltip.offsetHeight - 10 + window.scrollY + 'px';
+            
+            setTimeout(() => tooltip.classList.add('show'), 10);
+        });
+        
+        ability.addEventListener('mouseleave', () => {
+            const tooltip = document.getElementById('active-tooltip');
+            if (tooltip) {
+                tooltip.classList.remove('show');
+                setTimeout(() => tooltip.remove(), 200);
+            }
+        });
+    });
 }
 
 function renderStatRow(label, val, max, color, isBold = false) {
@@ -205,4 +252,3 @@ function renderEvolutionNode(node, currentId, mainColor, depth = 0) {
 }
 
 document.addEventListener('DOMContentLoaded', loadPokemon);
-
