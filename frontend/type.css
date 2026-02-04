@@ -1,3 +1,7 @@
+/* ===================================
+   TYPE PAGE - ENHANCED STYLES
+   =================================== */
+
 * {
     margin: 0;
     padding: 0;
@@ -7,8 +11,15 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 20px;
+    background-attachment: fixed;
+    padding: clamp(15px, 3vw, 25px);
     min-height: 100vh;
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 #type-container {
@@ -16,105 +27,255 @@ body {
     margin: 0 auto;
 }
 
-.back-btn {
-    background: #fff;
-    border: 2px solid #ddd;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    margin-bottom: 20px;
-    transition: all 0.3s;
-    font-size: 1rem;
-    display: inline-block;
-    text-decoration: none;
-    color: #333;
-}
-
-.back-btn:hover {
-    background: #f0f0f0;
-    border-color: #999;
-    transform: translateX(-3px);
-}
-
+/* ===================================
+   TYPE HEADER
+   =================================== */
 .type-header {
     background: white;
-    border-radius: 15px;
-    padding: 30px;
-    margin-bottom: 20px;
-    border-top: 5px solid;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    border-radius: 20px;
+    padding: clamp(25px, 4vw, 40px);
+    margin-bottom: 25px;
+    border-top: 6px solid;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
     text-align: center;
+    animation: slideUp 0.6s ease-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.type-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .type-header h1 {
-    font-size: 3rem;
-    margin: 10px 0;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    margin: 15px 0;
     text-transform: capitalize;
     display: inline-flex;
     align-items: center;
-    gap: 15px;
+    gap: clamp(10px, 2vw, 20px);
+    font-weight: 800;
+    letter-spacing: -1px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .type-icon {
-    width: 60px;
-    height: 60px;
+    width: clamp(50px, 8vw, 70px);
+    height: clamp(50px, 8vw, 70px);
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 2rem;
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    transition: transform 0.4s ease;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.type-icon:hover {
+    transform: scale(1.1) rotate(360deg);
+    transition: transform 0.6s ease;
 }
 
 .pokemon-count {
     display: inline-block;
     background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-weight: 600;
-    margin-top: 15px;
-    font-size: 0.9rem;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: 700;
+    margin-top: 20px;
+    font-size: clamp(0.85rem, 1.5vw, 1rem);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s ease;
 }
 
+.pokemon-count::before {
+    content: '🎯 ';
+}
+
+.pokemon-count:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+}
+
+/* ===================================
+   EFFECTIVENESS SECTION
+   =================================== */
 .effectiveness-section {
     background: white;
-    border-radius: 15px;
-    padding: 30px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    border-radius: 20px;
+    padding: clamp(25px, 4vw, 40px);
+    margin-bottom: 25px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    animation: slideUp 0.8s ease-out 0.2s backwards;
 }
 
 .effectiveness-section h2 {
     margin-top: 0;
-    margin-bottom: 25px;
-    color: #333;
-    font-size: 1.8rem;
-    border-bottom: 2px solid #f0f0f0;
+    margin-bottom: 30px;
+    color: #2c3e50;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    border-bottom: 3px solid #f1f3f5;
     padding-bottom: 15px;
+    font-weight: 700;
 }
 
 .effectiveness-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+    gap: clamp(15px, 3vw, 25px);
 }
 
 .effectiveness-card {
-    background: #f8f9fa;
-    border-radius: 12px;
-    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 15px;
+    padding: clamp(15px, 3vw, 25px);
+    border-left: 4px solid #667eea;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.effectiveness-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    border-left-width: 6px;
 }
 
 .effectiveness-card h3 {
-    font-size: 1.1rem;
+    font-size: clamp(1rem, 2vw, 1.2rem);
     margin-bottom: 15px;
     color: #2c3e50;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    font-weight: 700;
+    flex-wrap: wrap;
 }
 
 .effectiveness-card h3 .icon {
-    font-size: 1.3rem;
+    font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+}
+
+/* ===================================
+   RESPONSIVE DESIGN
+   =================================== */
+@media (max-width: 768px) {
+    body {
+        padding: 15px;
+    }
+
+    .type-header {
+        padding: 25px;
+    }
+
+    .effectiveness-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .type-header h1 {
+        font-size: 2rem;
+    }
+
+    .type-icon {
+        width: 55px;
+        height: 55px;
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+
+    .type-header,
+    .effectiveness-section {
+        padding: 20px;
+    }
+
+    .effectiveness-card {
+        padding: 15px;
+    }
+}
+
+/* ===================================
+   TOUCH DEVICE OPTIMIZATIONS
+   =================================== */
+@media (hover: none) and (pointer: coarse) {
+    .effectiveness-card:hover {
+        transform: none;
+    }
+
+    .effectiveness-card:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+
+    .pokemon-count:hover {
+        transform: none;
+    }
+
+    .pokemon-count:active {
+        transform: scale(0.95);
+    }
+
+    .type-icon:hover {
+        transform: none;
+    }
+}
+
+/* ===================================
+   REDUCED MOTION
+   =================================== */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .type-icon {
+        animation: none;
+    }
+}
+
+/* ===================================
+   PRINT STYLES
+   =================================== */
+@media print {
+    body {
+        background: white;
+    }
+
+    .effectiveness-card {
+        break-inside: avoid;
+    }
 }
