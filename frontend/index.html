@@ -7,8 +7,39 @@
     <meta name="description" content="Search and filter Pokémon by name, type, stats, and more">
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="navigation.css">
 </head>
 <body>
+<!-- NAVIGATION BAR -->
+<nav class="navbar">
+    <div class="nav-container">
+        <a href="index.html" class="nav-logo">
+            <span class="logo-icon">🔍</span>
+            <span class="logo-text">PokéSearch</span>
+        </a>
+        
+        <button class="nav-toggle" id="navToggle" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        
+        <div class="nav-menu" id="navMenu">
+            <a href="index.html" class="nav-link active">
+                <span class="link-icon">🏠</span>
+                <span>Home</span>
+            </a>
+            <a href="types-list.html" class="nav-link">
+                <span class="link-icon">⚡</span>
+                <span>Types</span>
+            </a>
+            <a href="abilities-list.html" class="nav-link">
+                <span class="link-icon">💪</span>
+                <span>Abilities</span>
+            </a>
+        </div>
+    </div>
+</nav>
 <div class="app-container">
     <h1>🔍 PokéSearch</h1>
 
@@ -96,7 +127,7 @@
 
         <!-- Name Advanced Filters Section -->
         <div id="name-advanced-filters" class="advanced-filters" style="display: none;">
-            <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 1.1rem;">📝 Advanced Name Filters</h3>
+            <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 1.1rem;">🔍 Advanced Name Filters</h3>
             
             <div class="filter-grid">
                 <div class="input-group">

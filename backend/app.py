@@ -31,8 +31,6 @@ DB_CONFIG = {
     "dsn": "127.0.0.1:1521/xe"
 }
 
-# ... reste du code identique ...
-
 def get_connection():
     try:
         return oracledb.connect(**DB_CONFIG)
@@ -81,7 +79,7 @@ def get_all_pokemon():
         conn.close()
 
 # ========================
-# 2. API: GET POKEMON DETAILS (COMPLETE)
+# 2. API: GET POKEMON DETAILS (COMPLETE WITH TYPE EFFECTIVENESS)
 # ========================
 @app.route("/api/pokemon/<int:poke_id>")
 def get_pokemon_details(poke_id):
@@ -135,6 +133,11 @@ def get_pokemon_details(poke_id):
         
         pokemon_data['abilities_data'] = abilities_data
 
+        # --- GET TYPE EFFECTIVENESS ---
+        type1 = pokemon_data.get('type1')
+        type2 = pokemon_data.get('type2')
+        pokemon_data['type_effectiveness'] = calculate_type_effectiveness(cur, type1, type2)
+
         # --- GET COMPLETE EVOLUTION CHAIN ---
         evolution_chain = get_complete_evolution_chain(cur, poke_id)
         pokemon_data['evolution_chain'] = evolution_chain
@@ -149,6 +152,104 @@ def get_pokemon_details(poke_id):
     finally:
         cur.close()
         conn.close()
+
+# ========================
+# HELPER: CALCULATE TYPE EFFECTIVENESS
+# ========================
+def calculate_type_effectiveness(cur, type1, type2=None):
+    """
+    Calculate type effectiveness for a Pokemon's type combination.
+    Returns defensive and offensive matchups.
+    """
+    
+    # Get type IDs
+    cur.execute("SELECT id FROM types WHERE LOWER(name) = LOWER(:type1)", {"type1": type1})
+    type1_row = cur.fetchone()
+    if not type1_row:
+        return {}
+    type1_id = type1_row[0]
+    
+    type2_id = None
+    if type2:
+        cur.execute("SELECT id FROM types WHERE LOWER(name) = LOWER(:type2)", {"type2": type2})
+        type2_row = cur.fetchone()
+        if type2_row:
+            type2_id = type2_row[0]
+    
+    # Calculate DEFENSIVE effectiveness (what damages this Pokemon)
+    defensive = {}
+    
+    # Get all attacking types
+    cur.execute("SELECT id, name FROM types ORDER BY name")
+    all_types = cur.fetchall()
+    
+    for attack_type_id, attack_type_name in all_types:
+        multiplier = 1.0
+        
+        # Check multiplier against type1
+        cur.execute("""
+            SELECT multiplier 
+            FROM type_effectiveness 
+            WHERE attack_type_id = :atk AND defense_type_id = :def
+        """, {"atk": attack_type_id, "def": type1_id})
+        result = cur.fetchone()
+        if result:
+            # Convert to float to handle Oracle decimal format
+            multiplier *= float(result[0]) if result[0] is not None else 1.0
+        
+        # Check multiplier against type2 if exists
+        if type2_id:
+            cur.execute("""
+                SELECT multiplier 
+                FROM type_effectiveness 
+                WHERE attack_type_id = :atk AND defense_type_id = :def
+            """, {"atk": attack_type_id, "def": type2_id})
+            result = cur.fetchone()
+            if result:
+                # Convert to float to handle Oracle decimal format
+                multiplier *= float(result[0]) if result[0] is not None else 1.0
+        
+        defensive[attack_type_name.lower()] = multiplier
+    
+    # Calculate OFFENSIVE effectiveness (what this Pokemon damages)
+    offensive = {}
+    
+    for defense_type_id, defense_type_name in all_types:
+        # Use type1 for offensive calculations (primary type)
+        cur.execute("""
+            SELECT multiplier 
+            FROM type_effectiveness 
+            WHERE attack_type_id = :atk AND defense_type_id = :def
+        """, {"atk": type1_id, "def": defense_type_id})
+        result = cur.fetchone()
+        # Convert to float to handle Oracle decimal format
+        multiplier = float(result[0]) if result and result[0] is not None else 1.0
+        offensive[defense_type_name.lower()] = multiplier
+    
+    # Categorize defensive matchups
+    weak_to = [t for t, m in defensive.items() if m > 1]
+    resistant_to = [t for t, m in defensive.items() if 0 < m < 1]
+    immune_to = [t for t, m in defensive.items() if m == 0]
+    
+    # Categorize offensive matchups
+    super_effective = [t for t, m in offensive.items() if m > 1]
+    not_very_effective = [t for t, m in offensive.items() if 0 < m < 1]
+    no_effect = [t for t, m in offensive.items() if m == 0]
+    
+    return {
+        "defensive": {
+            "weak_to": weak_to,
+            "resistant_to": resistant_to,
+            "immune_to": immune_to,
+            "multipliers": defensive
+        },
+        "offensive": {
+            "super_effective": super_effective,
+            "not_very_effective": not_very_effective,
+            "no_effect": no_effect,
+            "multipliers": offensive
+        }
+    }
 
 # ========================
 # HELPER: BUILD COMPLETE EVOLUTION CHAIN
@@ -283,7 +384,6 @@ def format_requirements(requirements):
     return " + ".join(parts) if parts else "Unknown"
 
 
-
 # ========================
 # 3. API: GET ABILITY DETAILS
 # ========================
@@ -381,6 +481,169 @@ def get_all_abilities():
     finally:
         cur.close()
         conn.close()
+
+
+# ========================
+# 5. API: GET TYPE DETAILS
+# ========================
+@app.route("/api/types/<string:type_name>")
+def get_type_details(type_name):
+    conn = get_connection()
+    if not conn:
+        return jsonify({"error": "DB Connection Failed"}), 500
+
+    cur = conn.cursor()
+    try:
+        # Get type information
+        cur.execute("""
+            SELECT id, name
+            FROM types
+            WHERE LOWER(name) = LOWER(:name)
+        """, {"name": type_name})
+        
+        type_row = cur.fetchone()
+        if not type_row:
+            return jsonify({"error": "Type not found"}), 404
+        
+        type_id = type_row[0]
+        type_name_db = type_row[1]
+        
+        type_data = {
+            "id": type_id,
+            "name": type_name_db
+        }
+        
+        # Get all Pokemon with this type (either type1 or type2)
+        cur.execute("""
+            SELECT DISTINCT id, name, type1, type2
+            FROM POKEMON_MASTER_VIEW
+            WHERE LOWER(type1) = LOWER(:type_name) OR LOWER(type2) = LOWER(:type_name)
+            ORDER BY id
+        """, {"type_name": type_name_db})
+        
+        pokemon_list = []
+        for poke_row in cur.fetchall():
+            pokemon_list.append({
+                "id": poke_row[0],
+                "name": poke_row[1],
+                "type1": poke_row[2],
+                "type2": poke_row[3]
+            })
+        
+        type_data['pokemon'] = pokemon_list
+        type_data['pokemon_count'] = len(pokemon_list)
+        
+        # Get type effectiveness for this type
+        type_data['effectiveness'] = get_type_matchups(cur, type_id)
+        
+        return jsonify(type_data)
+    
+    except Exception as e:
+        print(f"Error in get_type_details: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
+# ========================
+# 6. API: GET ALL TYPES
+# ========================
+@app.route("/api/types")
+def get_all_types():
+    conn = get_connection()
+    if not conn:
+        return jsonify({"error": "DB Connection Failed"}), 500
+
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            SELECT t.id, t.name, COUNT(DISTINCT p.id) as pokemon_count
+            FROM types t
+            LEFT JOIN POKEMON_MASTER_VIEW p ON (LOWER(p.type1) = LOWER(t.name) OR LOWER(p.type2) = LOWER(t.name))
+            GROUP BY t.id, t.name
+            ORDER BY t.name
+        """)
+        
+        types = []
+        for row in cur.fetchall():
+            types.append({
+                "id": row[0],
+                "name": row[1],
+                "pokemon_count": row[2]
+            })
+        
+        return jsonify(types)
+    
+    except Exception as e:
+        print(f"Error in get_all_types: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
+# ========================
+# HELPER: GET TYPE MATCHUPS
+# ========================
+def get_type_matchups(cur, type_id):
+    """
+    Get offensive and defensive matchups for a specific type.
+    """
+    
+    # Get all types
+    cur.execute("SELECT id, name FROM types ORDER BY name")
+    all_types = cur.fetchall()
+    
+    # OFFENSIVE: This type attacking others
+    offensive = {}
+    for def_type_id, def_type_name in all_types:
+        cur.execute("""
+            SELECT multiplier 
+            FROM type_effectiveness 
+            WHERE attack_type_id = :atk AND defense_type_id = :def
+        """, {"atk": type_id, "def": def_type_id})
+        result = cur.fetchone()
+        # Convert to float to handle Oracle decimal format
+        multiplier = float(result[0]) if result and result[0] is not None else 1.0
+        offensive[def_type_name.lower()] = multiplier
+    
+    # DEFENSIVE: Others attacking this type
+    defensive = {}
+    for atk_type_id, atk_type_name in all_types:
+        cur.execute("""
+            SELECT multiplier 
+            FROM type_effectiveness 
+            WHERE attack_type_id = :atk AND defense_type_id = :def
+        """, {"atk": atk_type_id, "def": type_id})
+        result = cur.fetchone()
+        # Convert to float to handle Oracle decimal format
+        multiplier = float(result[0]) if result and result[0] is not None else 1.0
+        defensive[atk_type_name.lower()] = multiplier
+    
+    # Categorize
+    super_effective = [t for t, m in offensive.items() if m > 1]
+    not_very_effective = [t for t, m in offensive.items() if 0 < m < 1]
+    no_effect_offensive = [t for t, m in offensive.items() if m == 0]
+    
+    weak_to = [t for t, m in defensive.items() if m > 1]
+    resistant_to = [t for t, m in defensive.items() if 0 < m < 1]
+    immune_to = [t for t, m in defensive.items() if m == 0]
+    
+    return {
+        "offensive": {
+            "super_effective": super_effective,
+            "not_very_effective": not_very_effective,
+            "no_effect": no_effect_offensive
+        },
+        "defensive": {
+            "weak_to": weak_to,
+            "resistant_to": resistant_to,
+            "immune_to": immune_to
+        }
+    }
 
 
 # ========================

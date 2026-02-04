@@ -42,8 +42,6 @@ function renderDetails(p) {
     const localImg = `./images/${id}.png`;
 
     document.getElementById('detail-container').innerHTML = `
-        <button class="back-btn" onclick="window.location.href='index.html'">← Back</button>
-
         <div class="detail-header" style="border-top-color: ${color};">
             <div class="header-sprite">
                 <img src="${apiImg}" onerror="this.onerror=null; this.src='${localImg}';">
@@ -52,13 +50,24 @@ function renderDetails(p) {
                 <div class="pokemon-id">#${String(id).padStart(3, '0')}</div>
                 <h1 style="color: ${color}; text-transform: capitalize;">${name}</h1>
                 <div class="types">
-                    <span class="type-badge" style="background: ${typeColors[type1]}">${type1}</span>
-                    ${type2 ? `<span class="type-badge" style="background: ${typeColors[type2]}">${type2}</span>` : ''}
+                    <span class="type-badge" 
+                          style="background: ${typeColors[type1]}; cursor: pointer;" 
+                          onclick="window.location.href='type.html?name=${type1}'">
+                        ${type1}
+                    </span>
+                    ${type2 ? `
+                    <span class="type-badge" 
+                          style="background: ${typeColors[type2]}; cursor: pointer;" 
+                          onclick="window.location.href='type.html?name=${type2}'">
+                        ${type2}
+                    </span>` : ''}
                 </div>
             </div>
         </div>
 
         <div class="detail-content">
+            ${renderTypeEffectiveness(p.type_effectiveness)}
+
             <div class="info-card">
                 <h2>📋 Information</h2>
                 <div class="info-grid">
@@ -123,15 +132,87 @@ function renderDetails(p) {
         document.querySelectorAll('.stat-fill').forEach(bar => {
             bar.style.width = bar.getAttribute('data-width');
         });
-        
-        // Initialize ability tooltips
         initAbilityTooltips();
     }, 100);
 }
 
+function renderTypeEffectiveness(effectiveness) {
+    if (!effectiveness || !effectiveness.defensive || !effectiveness.defensive.multipliers) {
+        return '';
+    }
+
+    const multipliers = effectiveness.defensive.multipliers;
+
+    // Group types by multiplier
+    const grouped = {
+        immune: [],      // 0x
+        veryResistant: [], // 0.25x
+        resistant: [],   // 0.5x
+        weak: [],        // 2x
+        veryWeak: []     // 4x
+    };
+
+    Object.entries(multipliers).forEach(([type, multiplier]) => {
+        if (multiplier === 0) {
+            grouped.immune.push(type);
+        } else if (multiplier === 0.25) {
+            grouped.veryResistant.push(type);
+        } else if (multiplier === 0.5) {
+            grouped.resistant.push(type);
+        } else if (multiplier === 2) {
+            grouped.weak.push(type);
+        } else if (multiplier === 4) {
+            grouped.veryWeak.push(type);
+        }
+    });
+
+    const hasAnyEffectiveness = grouped.immune.length > 0 || 
+                                grouped.veryResistant.length > 0 || 
+                                grouped.resistant.length > 0 || 
+                                grouped.weak.length > 0 || 
+                                grouped.veryWeak.length > 0;
+
+    if (!hasAnyEffectiveness) {
+        return '';
+    }
+
+    return `
+        <div class="info-card full-width">
+            <h2>⚔️ Type Effectiveness (Defensive)</h2>
+            <div class="type-effectiveness-grid">
+                ${renderEffectivenessCategory('Immune to (0×)', grouped.immune, 'immune', '✨')}
+                ${renderEffectivenessCategory('Very Resistant to (¼×)', grouped.veryResistant, 'very-resistant', '💪💪')}
+                ${renderEffectivenessCategory('Resistant to (½×)', grouped.resistant, 'resistant', '💪')}
+                ${renderEffectivenessCategory('Weak to (2×)', grouped.weak, 'weak', '💔')}
+                ${renderEffectivenessCategory('Very Weak to (4×)', grouped.veryWeak, 'very-weak', '💔💔')}
+            </div>
+        </div>
+    `;
+}
+
+function renderEffectivenessCategory(title, types, category, emoji) {
+    if (types.length === 0) {
+        return '';
+    }
+
+    return `
+        <div class="effectiveness-category ${category}">
+            <h3>${emoji} ${title}</h3>
+            <div class="type-badges-container">
+                ${types.map(type => `
+                    <a href="type.html?name=${type}" 
+                       class="type-badge type-${type}"
+                       style="cursor: pointer; text-decoration: none;">
+                        ${type}
+                    </a>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
 function initAbilityTooltips() {
     const abilities = document.querySelectorAll('.clickable-ability');
-    
     abilities.forEach(ability => {
         const description = ability.getAttribute('data-description');
         
@@ -182,28 +263,94 @@ function renderEvolutionChain(chain, currentId, mainColor) {
         `;
     }
 
+    // Flatten the evolution chain into a linear array
+    const linearChain = flattenEvolutionChain(chain);
+    
+    // Check if there are branching evolutions
+    const hasBranches = checkForBranches(chain);
+
     return `
         <div class="info-card full-width">
             <h2>🔄 Evolution Chain</h2>
             <div class="evolution-tree">
-                ${renderEvolutionNode(chain, currentId, mainColor, 0)}
+                ${hasBranches ? renderBranchedEvolution(chain, currentId, mainColor) : renderLinearEvolution(linearChain, currentId, mainColor)}
             </div>
         </div>
     `;
 }
 
-function renderEvolutionNode(node, currentId, mainColor, depth = 0) {
-    if (!node) return '';
-
-    const isCurrent = node.id === currentId;
-    const hasMultipleEvolutions = node.evolutions && node.evolutions.length > 1;
+function flattenEvolutionChain(node, result = []) {
+    if (!node) return result;
     
-    // API and Local fallbacks for evolution sprites
+    result.push(node);
+    
+    // For linear evolution, only follow the first evolution path
+    if (node.evolutions && node.evolutions.length > 0) {
+        flattenEvolutionChain(node.evolutions[0], result);
+    }
+    
+    return result;
+}
+
+function checkForBranches(node) {
+    if (!node) return false;
+    if (node.evolutions && node.evolutions.length > 1) return true;
+    if (node.evolutions && node.evolutions.length === 1) {
+        return checkForBranches(node.evolutions[0]);
+    }
+    return false;
+}
+
+function renderLinearEvolution(chain, currentId, mainColor) {
+    let html = '<div class="evo-linear">';
+    
+    chain.forEach((pokemon, index) => {
+        const isCurrent = pokemon.id === currentId;
+        const apiImg = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.id}.png`;
+        const localImg = `./images/${pokemon.id}.png`;
+        
+        // Render Pokemon node
+        html += `
+            <div class="evo-node ${isCurrent ? 'current' : 'clickable'}"
+                 ${!isCurrent ? `onclick="window.location.href='details.html?id=${pokemon.id}'"` : ''}
+                 style="${isCurrent ? `
+                    border: 3px solid ${mainColor};
+                    box-shadow: 0 0 20px ${mainColor}66;
+                    background: linear-gradient(135deg, ${mainColor}11, transparent);
+                 ` : ''}">
+                <img src="${apiImg}" width="96" onerror="this.onerror=null; this.src='${localImg}';">
+                <div class="evo-name" style="text-transform: capitalize; font-weight: ${isCurrent ? 'bold' : 'normal'};">
+                    ${pokemon.name}
+                </div>
+                ${isCurrent ? '<small style="color: #888; font-weight: 500;">Current</small>' : ''}
+            </div>
+        `;
+        
+        // Render arrow if not the last pokemon
+        if (index < chain.length - 1) {
+            const nextPokemon = chain[index + 1];
+            const requirement = nextPokemon.requirement || pokemon.evolutions?.[0]?.requirement || 'Level Up';
+            html += `
+                <div class="evo-arrow">
+                    <div class="requirement">${requirement}</div>
+                    <div class="arrow">→</div>
+                </div>
+            `;
+        }
+    });
+    
+    html += '</div>';
+    return html;
+}
+
+function renderBranchedEvolution(node, currentId, mainColor) {
+    const isCurrent = node.id === currentId;
     const apiImg = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${node.id}.png`;
     const localImg = `./images/${node.id}.png`;
-
+    
     let html = '<div class="evo-stage">';
-
+    
+    // Render the base Pokemon
     html += `
         <div class="evo-node ${isCurrent ? 'current' : 'clickable'}"
              ${!isCurrent ? `onclick="window.location.href='details.html?id=${node.id}'"` : ''}
@@ -212,43 +359,66 @@ function renderEvolutionNode(node, currentId, mainColor, depth = 0) {
                 box-shadow: 0 0 20px ${mainColor}66;
                 background: linear-gradient(135deg, ${mainColor}11, transparent);
              ` : ''}">
-            <img src="${apiImg}" width="${isCurrent ? '100' : '70'}" onerror="this.onerror=null; this.src='${localImg}';">
+            <img src="${apiImg}" width="96" onerror="this.onerror=null; this.src='${localImg}';">
             <div class="evo-name" style="text-transform: capitalize; font-weight: ${isCurrent ? 'bold' : 'normal'};">
                 ${node.name}
             </div>
             ${isCurrent ? '<small style="color: #888; font-weight: 500;">Current</small>' : ''}
         </div>
     `;
-
-    if (node.evolutions && node.evolutions.length > 0) {
-        if (hasMultipleEvolutions) {
-            html += `<div class="evo-arrow-main"><div class="arrow">→</div></div><div class="evo-branches">`;
-            for (const evo of node.evolutions) {
-                html += `
-                    <div class="evo-branch">
-                        <div class="evo-arrow-branch">
-                            <div class="requirement">${evo.requirement || 'Unknown'}</div>
-                            <div class="arrow-line">→</div>
-                        </div>
-                        ${renderEvolutionNode(evo, currentId, mainColor, depth + 1)}
-                    </div>`;
-            }
-            html += '</div>';
-        } else {
-            const evo = node.evolutions[0];
+    
+    // If there are multiple evolutions, render branches
+    if (node.evolutions && node.evolutions.length > 1) {
+        html += `<div class="evo-arrow-main"><div class="arrow">→</div></div><div class="evo-branches">`;
+        for (const evo of node.evolutions) {
             html += `
-                <div class="evo-linear">
-                    <div class="evo-arrow">
+                <div class="evo-branch">
+                    <div class="evo-arrow-branch">
                         <div class="requirement">${evo.requirement || 'Unknown'}</div>
-                        <div class="arrow">→</div>
+                        <div class="arrow-line">→</div>
                     </div>
-                    ${renderEvolutionNode(evo, currentId, mainColor, depth)}
+                    ${renderEvolutionNodeSimple(evo, currentId, mainColor)}
                 </div>`;
         }
+        html += '</div>';
+    } else if (node.evolutions && node.evolutions.length === 1) {
+        // Single evolution - check if it branches later
+        const evo = node.evolutions[0];
+        html += `
+            <div class="evo-arrow">
+                <div class="requirement">${evo.requirement || 'Level Up'}</div>
+                <div class="arrow">→</div>
+            </div>
+            ${renderBranchedEvolution(evo, currentId, mainColor)}
+        `;
     }
-
+    
     html += '</div>';
     return html;
+}
+
+function renderEvolutionNodeSimple(node, currentId, mainColor) {
+    if (!node) return '';
+    
+    const isCurrent = node.id === currentId;
+    const apiImg = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${node.id}.png`;
+    const localImg = `./images/${node.id}.png`;
+    
+    return `
+        <div class="evo-node ${isCurrent ? 'current' : 'clickable'}"
+             ${!isCurrent ? `onclick="window.location.href='details.html?id=${node.id}'"` : ''}
+             style="${isCurrent ? `
+                border: 3px solid ${mainColor};
+                box-shadow: 0 0 20px ${mainColor}66;
+                background: linear-gradient(135deg, ${mainColor}11, transparent);
+             ` : ''}">
+            <img src="${apiImg}" width="96" onerror="this.onerror=null; this.src='${localImg}';">
+            <div class="evo-name" style="text-transform: capitalize; font-weight: ${isCurrent ? 'bold' : 'normal'};">
+                ${node.name}
+            </div>
+            ${isCurrent ? '<small style="color: #888; font-weight: 500;">Current</small>' : ''}
+        </div>
+    `;
 }
 
 document.addEventListener('DOMContentLoaded', loadPokemon);

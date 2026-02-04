@@ -175,8 +175,8 @@ function renderResults(list) {
                 <div style="font-size: 0.75rem; color: #95a5a6; font-weight: 700; margin-bottom: 4px;">#${idFormatted}</div>
                 <strong style="text-transform:capitalize; display: block; margin-bottom: 8px;">${p.name}</strong>
                 <div>
-                    <span class="type-badge" style="background:${typeColors[p.type1]}">${p.type1}</span>
-                    ${p.type2 ? `<span class="type-badge" style="background:${typeColors[p.type2]}">${p.type2}</span>` : ''}
+                    <a href="type.html?name=${p.type1}" class="type-badge" style="background:${typeColors[p.type1]}; text-decoration: none; color: white;" onclick="event.stopPropagation()">${p.type1}</a>
+                    ${p.type2 ? `<a href="type.html?name=${p.type2}" class="type-badge" style="background:${typeColors[p.type2]}; text-decoration: none; color: white;" onclick="event.stopPropagation()">${p.type2}</a>` : ''}
                 </div>
             </div>
         </li>`
@@ -214,8 +214,8 @@ async function openModal(id) {
                 <img src="${img}" alt="${p.name}" style="width: 140px; height: 140px; object-fit: contain; margin: 10px auto; display: block;">
                 
                 <div style="display: flex; justify-content: center; gap: 8px; margin: 12px 0;">
-                    <span class="type-badge" style="background:${typeColors[p.type1.toLowerCase()]}; font-size: 0.7rem; padding: 5px 12px;">${p.type1}</span>
-                    ${p.type2 ? `<span class="type-badge" style="background:${typeColors[p.type2.toLowerCase()]}; font-size: 0.7rem; padding: 5px 12px;">${p.type2}</span>` : ''}
+                    <a href="type.html?name=${p.type1.toLowerCase()}" class="type-badge" style="background:${typeColors[p.type1.toLowerCase()]}; font-size: 0.7rem; padding: 5px 12px; text-decoration: none; color: white; cursor: pointer;">${p.type1}</a>
+                    ${p.type2 ? `<a href="type.html?name=${p.type2.toLowerCase()}" class="type-badge" style="background:${typeColors[p.type2.toLowerCase()]}; font-size: 0.7rem; padding: 5px 12px; text-decoration: none; color: white; cursor: pointer;">${p.type2}</a>` : ''}
                 </div>
                 
                 ${p.description ? `<p style="font-size: 0.85rem; line-height: 1.5; color: #34495e; margin: 14px 0; padding: 12px; background: #f8f9fa; border-radius: 10px; text-align: left;">${p.description}</p>` : ''}
@@ -317,4 +317,40 @@ document.addEventListener('keydown', (e) => {
         e.preventDefault()
         clearFilters()
     }
+})
+
+// Toggle hamburger menu
+function toggleMenu() {
+    const navMenu = document.getElementById('navMenu')
+    const navToggle = document.getElementById('navToggle')
+    
+    navMenu.classList.toggle('active')
+    navToggle.classList.toggle('active')
+}
+
+// Close menu when clicking outside (mobile)
+document.addEventListener('click', (e) => {
+    const navMenu = document.getElementById('navMenu')
+    const navToggle = document.getElementById('navToggle')
+    
+    if (navMenu && navToggle && window.innerWidth <= 768) {
+        if (!navMenu.contains(e.target) && !navToggle.contains(e.target)) {
+            navMenu.classList.remove('active')
+            navToggle.classList.remove('active')
+        }
+    }
+})
+
+// Close menu when clicking on a link (mobile)
+document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+            const navMenu = document.getElementById('navMenu')
+            const navToggle = document.getElementById('navToggle')
+            if (navMenu && navToggle) {
+                navMenu.classList.remove('active')
+                navToggle.classList.remove('active')
+            }
+        }
+    })
 })

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <title>All Types - PokéDex</title>
+    <link rel="stylesheet" href="navigation.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .types-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .type-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: #333;
+            display: block;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-bottom: 5px solid #ddd;
+        }
+
+        .type-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+        }
+
+        .type-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .type-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-transform: capitalize;
+            margin-bottom: 10px;
+        }
+
+        .pokemon-count {
+            font-size: 0.9rem;
+            color: #777;
+            font-weight: 600;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #e9ecef;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 40px auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Type colors */
+        .type-normal { border-bottom-color: #A8A878; }
+        .type-fire { border-bottom-color: #F08030; }
+        .type-water { border-bottom-color: #6890F0; }
+        .type-electric { border-bottom-color: #F8D030; }
+        .type-grass { border-bottom-color: #78C850; }
+        .type-ice { border-bottom-color: #98D8D8; }
+        .type-fighting { border-bottom-color: #C03028; }
+        .type-poison { border-bottom-color: #A040A0; }
+        .type-ground { border-bottom-color: #E0C068; }
+        .type-flying { border-bottom-color: #A890F0; }
+        .type-psychic { border-bottom-color: #F85888; }
+        .type-bug { border-bottom-color: #A8B820; }
+        .type-rock { border-bottom-color: #B8A038; }
+        .type-ghost { border-bottom-color: #705898; }
+        .type-dragon { border-bottom-color: #7038F8; }
+        .type-dark { border-bottom-color: #705848; }
+        .type-steel { border-bottom-color: #B8B8D0; }
+        .type-fairy { border-bottom-color: #EE99AC; }
+
+        @media (max-width: 768px) {
+            .types-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- NAVIGATION BAR -->
+    <nav class="nav-bar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand">🔍 PokéSearch</a>
+            <div class="nav-links">
+                <a href="index.html" class="nav-btn">🏠 Home</a>
+                <a href="types-list.html" class="nav-btn active">⚡ Types</a>
+                <a href="abilities-list.html" class="nav-btn">💪 Abilities</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>⚡ All Pokémon Types</h1>
+        <div id="types-container">
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <script>
+        const typeIcons = {
+            normal: "⭐", fire: "🔥", water: "💧", electric: "⚡",
+            grass: "🌿", ice: "❄️", fighting: "👊", poison: "☠️",
+            ground: "🌍", flying: "🦅", psychic: "🔮", bug: "🐛",
+            rock: "🪨", ghost: "👻", dragon: "🐉", dark: "🌑",
+            steel: "⚙️", fairy: "🧚"
+        };
+
+        async function loadTypes() {
+            try {
+                const response = await fetch('http://127.0.0.1:5000/api/types');
+                const types = await response.json();
+                
+                const container = document.getElementById('types-container');
+                container.innerHTML = `
+                    <div class="types-grid">
+                        ${types.map(type => `
+                            <a href="type.html?name=${type.name.toLowerCase()}" 
+                               class="type-card type-${type.name.toLowerCase()}">
+                                <span class="type-icon">${typeIcons[type.name.toLowerCase()] || '❓'}</span>
+                                <div class="type-name">${type.name}</div>
+                                <div class="pokemon-count">${type.pokemon_count} Pokémon</div>
+                            </a>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading types:', error);
+                document.getElementById('types-container').innerHTML = `
+                    <p style="color:white; text-align:center;">Failed to load types</p>
+                `;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadTypes);
+    </script>
+</body>
+</html>
