@@ -1,20 +1,19 @@
 /**
  * Navigation Menu Toggle Functionality
- * Handles mobile menu open/close and body scroll locking
+ * Handles mobile menu without freezing the vertical scroll
  */
 
-// Helper to handle body scroll locking
-function toggleBodyScroll(isLocked) {
-    if (isLocked) {
-        // Prevent background scrolling and "finger slide"
-        document.body.style.overflowX = 'hidden';
-        document.body.style.overflowY = 'hidden';
-        document.body.style.touchAction = 'none'; // Disables all touch gestures on body
+// Helper to handle body locking without breaking vertical scroll
+function toggleMenuState(isOpen) {
+    const body = document.body;
+    if (isOpen) {
+        // Stop sideways sliding, but allow vertical movement
+        body.style.overflowX = 'hidden'; 
+        // We remove 'touch-action: none' so your finger can move again
+        body.style.touchAction = 'pan-y'; 
     } else {
-        // Restore scrolling
-        document.body.style.overflowX = 'hidden'; // Keep hidden to prevent side-swipe
-        document.body.style.overflowY = 'auto';
-        document.body.style.touchAction = 'auto';
+        body.style.overflowX = 'hidden';
+        body.style.touchAction = 'auto';
     }
 }
 
@@ -28,8 +27,8 @@ function toggleMenu() {
         const isActive = navToggle.classList.toggle('active');
         navMenu.classList.toggle('active');
         
-        // Lock body scroll when menu is active
-        toggleBodyScroll(isActive);
+        // Update body state
+        toggleMenuState(isActive);
     }
 
     if (navLinks) {
@@ -43,25 +42,24 @@ function closeAllMenus() {
     const navMenu = document.getElementById('navMenu');
     const navLinks = document.querySelector('.nav-links');
 
-    navToggle?.classList.remove('active');
-    navMenu?.classList.remove('active');
-    navLinks?.classList.remove('active');
-    
-    // Always unlock body when closing
-    toggleBodyScroll(false);
+    if (navMenu?.classList.contains('active')) {
+        navToggle?.classList.remove('active');
+        navMenu?.classList.remove('active');
+        navLinks?.classList.remove('active');
+        toggleMenuState(false);
+    }
 }
 
 // Close menu when clicking outside
 document.addEventListener('click', function(event) {
     const navToggle = document.getElementById('navToggle');
-    const navMenu = document.getElementById('navMenu');
-    const navLinks = document.querySelector('.nav-links');
     const navbar = document.querySelector('.navbar, .nav-bar');
 
     if (!navbar || !navToggle) return;
 
     const isClickInsideNav = navbar.contains(event.target);
-    const isMenuOpen = navMenu?.classList.contains('active') || navLinks?.classList.contains('active');
+    const navMenu = document.getElementById('navMenu');
+    const isMenuOpen = navMenu?.classList.contains('active');
 
     if (!isClickInsideNav && isMenuOpen) {
         closeAllMenus();
@@ -80,7 +78,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Prevent horizontal overflow on load
+    // Force horizontal lock on load
+    document.documentElement.style.overflowX = 'hidden';
     document.body.style.overflowX = 'hidden';
 });
 
