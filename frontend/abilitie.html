@@ -7,42 +7,158 @@
     <title>Ability Details - PokéDex</title>
     <link rel="stylesheet" href="abilitie.css">
     <link rel="stylesheet" href="navigation.css">
+    <style>
+        html {
+            overscroll-behavior: none;
+        }
+        body {
+            overscroll-behavior: none;
+            padding-top: 0;
+        }
+        .pokemon-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        .pokemon-section h2 {
+            margin-top: 0;
+            margin-bottom: 30px;
+            color: #333;
+            font-size: 1.8rem;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+        .pokemon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+        }
+        .pokemon-card {
+            background: #f8f9fa;
+            border: 2px solid #e1e8ed;
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: #333;
+            display: block;
+        }
+        .pokemon-card:hover {
+            transform: translateY(-8px) scale(1.05);
+            border-color: #667eea;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        .pokemon-card img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            margin: 0 auto 10px;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+        .pokemon-card:hover img {
+            transform: scale(1.15) rotate(-5deg);
+        }
+        .pokemon-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2c3e50;
+            text-transform: capitalize;
+            margin-bottom: 8px;
+        }
+        .pokemon-id {
+            font-size: 0.85rem;
+            color: #95a5a6;
+            font-weight: 600;
+        }
+        .type-badges {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .type-badge {
+            padding: 4px 10px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+        }
+        /* Type colors */
+        .type-normal { background: #A8A878; }
+        .type-fire { background: #F08030; }
+        .type-water { background: #6890F0; }
+        .type-electric { background: #F8D030; color: #333; }
+        .type-grass { background: #78C850; }
+        .type-ice { background: #98D8D8; }
+        .type-fighting { background: #C03028; }
+        .type-poison { background: #A040A0; }
+        .type-ground { background: #E0C068; }
+        .type-flying { background: #A890F0; }
+        .type-psychic { background: #F85888; }
+        .type-bug { background: #A8B820; }
+        .type-rock { background: #B8A038; }
+        .type-ghost { background: #705898; }
+        .type-dragon { background: #7038F8; }
+        .type-dark { background: #705848; }
+        .type-steel { background: #B8B8D0; }
+        .type-fairy { background: #EE99AC; }
+    </style>
 </head>
 <body>
     <!-- NAVIGATION BAR -->
-  <nav class="navbar">
-    <div class="nav-container">
-        <a href="index.html" class="nav-logo">
-            <span class="logo-icon">🔍</span>
-            <span class="logo-text">PokéSearch</span>
-        </a>
-        
-        <button class="nav-toggle" id="navToggle" onclick="toggleMenu()">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
-        
-        <div class="nav-menu" id="navMenu">
-            <a href="index.html" class="nav-link active">
-                <span class="link-icon">🏠</span>
-                <span>Home</span>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <span class="logo-icon">🔍</span>
+                <span class="logo-text">PokéSearch</span>
             </a>
-            <a href="types-list.html" class="nav-link">
-                <span class="link-icon">⚡</span>
-                <span>Types</span>
-            </a>
-            <a href="abilities-list.html" class="nav-link">
-                <span class="link-icon">💪</span>
-                <span>Abilities</span>
-            </a>
+            
+            <button class="nav-toggle" id="navToggle" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            
+            <div class="nav-menu" id="navMenu">
+                <a href="index.html" class="nav-link">
+                    <span class="link-icon">🏠</span>
+                    <span>Home</span>
+                </a>
+                <a href="types-list.html" class="nav-link">
+                    <span class="link-icon">⚡</span>
+                    <span>Types</span>
+                </a>
+                <a href="abilities-list.html" class="nav-link active">
+                    <span class="link-icon">💪</span>
+                    <span>Abilities</span>
+                </a>
+                <a class="nav-link disabled">
+                    <span class="link-icon">⭐</span>
+                    <span>Favourites</span>
+                </a>
+                <a class="nav-link disabled">
+                    <span class="link-icon">👥</span>
+                    <span>Team</span>
+                </a>
+                <a class="nav-link disabled">
+                    <span class="link-icon">👤</span>
+                    <span>Profile</span>
+                </a>
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
-    <div id="ability-container">
+    <div id="ability-container" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
         <p style="color:white; text-align:center;">Loading...</p>
     </div>
+    <script src="navigation.js"></script>
     <script src="abilitie.js"></script>
 </body>
 </html>

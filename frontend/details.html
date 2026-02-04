@@ -4,20 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="favicon.png">
-    <script src="details.js" defer></script>
+    <title>Pokemon Details - PokéDex</title>
     <link rel="stylesheet" href="details.css">
     <link rel="stylesheet" href="navigation.css">
-    <title>Pokemon Details - PokéDex</title>
+    <style>
+        html {
+            overscroll-behavior: none;
+        }
+        body {
+            overscroll-behavior: none;
+            padding-top: 0;
+        }
+    </style>
 </head>
 <body>
     <!-- NAVIGATION BAR -->
-    <nav class="nav-bar">
+    <nav class="navbar">
         <div class="nav-container">
-            <a href="index.html" class="nav-brand">🔍 PokéSearch</a>
-            <div class="nav-links">
-                <a href="index.html" class="nav-btn">🏠 Home</a>
-                <a href="types-list.html" class="nav-btn">⚡ Types</a>
-                <a href="abilities-list.html" class="nav-btn">💪 Abilities</a>
+            <a href="index.html" class="nav-logo">
+                <span class="logo-icon">🔍</span>
+                <span class="logo-text">PokéSearch</span>
+            </a>
+            
+            <button class="nav-toggle" id="navToggle" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            
+            <div class="nav-menu" id="navMenu">
+                <a href="index.html" class="nav-link">
+                    <span class="link-icon">🏠</span>
+                    <span>Home</span>
+                </a>
+                <a href="types-list.html" class="nav-link">
+                    <span class="link-icon">⚡</span>
+                    <span>Types</span>
+                </a>
+                <a href="abilities-list.html" class="nav-link">
+                    <span class="link-icon">💪</span>
+                    <span>Abilities</span>
+                </a>
+                <a class="nav-link disabled">
+                    <span class="link-icon">⭐</span>
+                    <span>Favourites</span>
+                </a>
+                <a class="nav-link disabled">
+                    <span class="link-icon">👥</span>
+                    <span>Team</span>
+                </a>
+                <a class="nav-link disabled">
+                    <span class="link-icon">👤</span>
+                    <span>Profile</span>
+                </a>
             </div>
         </div>
     </nav>
@@ -25,5 +64,8 @@
     <div id="detail-container">
         <p style="color:white; text-align:center;">Loading...</p>
     </div>
+
+    <script src="navigation.js"></script>
+    <script src="details.js"></script>
 </body>
 </html>

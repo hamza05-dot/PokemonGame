@@ -37,17 +37,29 @@
                 <span class="link-icon">💪</span>
                 <span>Abilities</span>
             </a>
+            <a class="nav-link disabled">
+                <span class="link-icon">⭐</span>
+                <span>Favourites</span>
+            </a>
+            <a class="nav-link disabled">
+                <span class="link-icon">👥</span>
+                <span>Team</span>
+            </a>
+            <a class="nav-link disabled">
+                <span class="link-icon">👤</span>
+                <span>Profile</span>
+            </a>
         </div>
     </div>
 </nav>
+
 <div class="app-container">
     <h1>🔍 PokéSearch</h1>
 
     <div class="search-card">
         <div class="filter-grid">
-
             <div class="input-group" style="grid-column: span 2;">
-                <label>🔍 ID or Name</label>
+                <label>🔢 ID or Name</label>
                 <input type="text" id="id-name-search" placeholder="25 or Pikachu" oninput="searchPokemon()">
             </div>
         </div>
@@ -57,7 +69,7 @@
                 <label>⚡ Type</label>
                 <select id="type-filter" onchange="searchPokemon()">
                     <option value="">All Types</option>
-                    <option value="grass">🌿 Grass</option>
+                    <option value="grass">🍀 Grass</option>
                     <option value="fire">🔥 Fire</option>
                     <option value="water">💧 Water</option>
                     <option value="bug">🐛 Bug</option>
@@ -82,7 +94,7 @@
                 <label>🗺️ Region</label>
                 <select id="region-filter" onchange="searchPokemon()">
                     <option value="">All Regions</option>
-                    <option value="kanto">🏔️ Kanto</option>
+                    <option value="kanto">🗾 Kanto</option>
                     <option value="johto">🌸 Johto</option>
                     <option value="hoenn">🌊 Hoenn</option>
                     <option value="sinnoh">⛰️ Sinnoh</option>
@@ -104,23 +116,27 @@
 
             <div class="input-group">
                 <label>📊 Sort By</label>
-                <select id="sort-stat" onchange="searchPokemon()">
-                    <option value="id">🔢 Pokédex ID</option>
-                    <option value="name">🔤 Name (A-Z)</option>
-                    <option value="hp">❤️ HP (Highest)</option>
-                    <option value="attack">⚔️ Attack (Highest)</option>
-                    <option value="defense">🛡️ Defense (Highest)</option>
-                    <option value="sp_atk">✨ Sp. Atk (Highest)</option>
-                    <option value="sp_def">💫 Sp. Def (Highest)</option>
-                    <option value="speed">💨 Speed (Highest)</option>
-                    <option value="bst">💪 Total Stats (Highest)</option>
-                    <option value="height">📏 Height (Highest)</option>
-                    <option value="weight">⚖️ Weight (Highest)</option>
-                    <option value="catch_rate">🎣 Catch Rate (Highest)</option>
-                </select>
+                <div class="sort-controls">
+                    <select id="sort-stat" onchange="searchPokemon()">
+                        <option value="id">🔢 Pokédex ID</option>
+                        <option value="name">🔤 Name (A-Z)</option>
+                        <option value="hp">❤️ HP (Highest)</option>
+                        <option value="attack">⚔️ Attack (Highest)</option>
+                        <option value="defense">🛡️ Defense (Highest)</option>
+                        <option value="sp_atk">✨ Sp. Atk (Highest)</option>
+                        <option value="sp_def">💫 Sp. Def (Highest)</option>
+                        <option value="speed">💨 Speed (Highest)</option>
+                        <option value="bst">💪 Total Stats (Highest)</option>
+                        <option value="height">📏 Height (Highest)</option>
+                        <option value="weight">⚖️ Weight (Highest)</option>
+                        <option value="catch_rate">🎣 Catch Rate (Highest)</option>
+                    </select>
+                    <button class="sort-order-btn" id="sort-order-btn" onclick="toggleSortOrder()">⬇️ Descending</button>
+                </div>
             </div>
         </div>
-<!-- Name Advanced Filters Toggle -->
+
+        <!-- Name Advanced Filters Toggle -->
         <button class="name-advanced-toggle" onclick="toggleNameAdvancedFilters()" type="button">
             <span id="name-toggle-text">▼ Advanced Name Filters</span>
         </button>
@@ -156,6 +172,7 @@
                 </div>
             </div>
         </div>
+
         <!-- Advanced Filters Toggle -->
         <button class="advanced-toggle" onclick="toggleAdvancedFilters()" type="button">
             <span id="toggle-text">▼ Show Advanced Filters</span>

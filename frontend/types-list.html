@@ -13,24 +13,60 @@
             box-sizing: border-box;
         }
 
+        html {
+            overscroll-behavior: none;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
+            padding: 0;
             min-height: 100vh;
+            overscroll-behavior: none;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 20px;
         }
 
         h1 {
             color: white;
             text-align: center;
             font-size: 2.5rem;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .sort-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .sort-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
         }
 
         .types-grid {
@@ -126,24 +162,64 @@
 </head>
 <body>
     <!-- NAVIGATION BAR -->
-    <nav class="nav-bar">
+    <nav class="navbar">
         <div class="nav-container">
-            <a href="index.html" class="nav-brand">🔍 PokéSearch</a>
-            <div class="nav-links">
-                <a href="index.html" class="nav-btn">🏠 Home</a>
-                <a href="types-list.html" class="nav-btn active">⚡ Types</a>
-                <a href="abilities-list.html" class="nav-btn">💪 Abilities</a>
+            <a href="index.html" class="nav-logo">
+                <span class="logo-icon">🔍</span>
+                <span class="logo-text">PokéSearch</span>
+            </a>
+            
+            <button class="nav-toggle" id="navToggle" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            
+            <div class="nav-menu" id="navMenu">
+                <a href="index.html" class="nav-link">
+                    <span class="link-icon">🏠</span>
+                    <span>Home</span>
+                </a>
+                <a href="types-list.html" class="nav-link active">
+                    <span class="link-icon">⚡</span>
+                    <span>Types</span>
+                </a>
+                <a href="abilities-list.html" class="nav-link">
+                    <span class="link-icon">💪</span>
+                    <span>Abilities</span>
+                </a>
+                <a class="nav-link disabled">
+                    <span class="link-icon">⭐</span>
+                    <span>Favourites</span>
+                </a>
+                <a class="nav-link disabled">
+                    <span class="link-icon">👥</span>
+                    <span>Team</span>
+                </a>
+                <a class="nav-link disabled">
+                    <span class="link-icon">👤</span>
+                    <span>Profile</span>
+                </a>
             </div>
         </div>
     </nav>
 
     <div class="container">
+        <a href="index.html" class="back-btn">← Back to Home</a>
         <h1>⚡ All Pokémon Types</h1>
+        
+        <div class="controls">
+            <button class="sort-btn" onclick="toggleSort()">
+                <span id="sort-text">⬇️ Sort: A-Z</span>
+            </button>
+        </div>
+
         <div id="types-container">
             <div class="spinner"></div>
         </div>
     </div>
 
+    <script src="navigation.js"></script>
     <script>
         const typeIcons = {
             normal: "⭐", fire: "🔥", water: "💧", electric: "⚡",
@@ -153,30 +229,93 @@
             steel: "⚙️", fairy: "🧚"
         };
 
+        let allTypes = [];
+        let sortAsc = true;
+
+        // API Configuration
+        const API_ENDPOINTS = {
+            primary: 'http://127.0.0.1:5000',
+            fallback: 'https://delila-wakeless-maranda.ngrok-free.dev'
+        };
+
+        let currentEndpoint = API_ENDPOINTS.primary;
+
+        async function apiFetch(path, options = {}) {
+            const headers = {
+                ...options.headers,
+                "ngrok-skip-browser-warning": "true"
+            };
+            
+            try {
+                const response = await fetch(`${currentEndpoint}${path}`, {
+                    ...options,
+                    headers
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return response;
+            } catch (error) {
+                if (currentEndpoint === API_ENDPOINTS.primary) {
+                    console.warn(`Primary API failed, switching to fallback`);
+                    currentEndpoint = API_ENDPOINTS.fallback;
+                    
+                    const response = await fetch(`${currentEndpoint}${path}`, {
+                        ...options,
+                        headers
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    return response;
+                }
+                
+                throw error;
+            }
+        }
+
         async function loadTypes() {
             try {
-                const response = await fetch('http://127.0.0.1:5000/api/types');
-                const types = await response.json();
-                
-                const container = document.getElementById('types-container');
-                container.innerHTML = `
-                    <div class="types-grid">
-                        ${types.map(type => `
-                            <a href="type.html?name=${type.name.toLowerCase()}" 
-                               class="type-card type-${type.name.toLowerCase()}">
-                                <span class="type-icon">${typeIcons[type.name.toLowerCase()] || '❓'}</span>
-                                <div class="type-name">${type.name}</div>
-                                <div class="pokemon-count">${type.pokemon_count} Pokémon</div>
-                            </a>
-                        `).join('')}
-                    </div>
-                `;
+                const response = await apiFetch('/api/types');
+                allTypes = await response.json();
+                displayTypes();
             } catch (error) {
                 console.error('Error loading types:', error);
                 document.getElementById('types-container').innerHTML = `
                     <p style="color:white; text-align:center;">Failed to load types</p>
                 `;
             }
+        }
+
+        function toggleSort() {
+            sortAsc = !sortAsc;
+            document.getElementById('sort-text').textContent = sortAsc ? '⬆️ Sort: A-Z' : '⬇️ Sort: Z-A';
+            displayTypes();
+        }
+
+        function displayTypes() {
+            const sorted = [...allTypes].sort((a, b) => {
+                const comparison = a.name.localeCompare(b.name);
+                return sortAsc ? comparison : -comparison;
+            });
+
+            const container = document.getElementById('types-container');
+            container.innerHTML = `
+                <div class="types-grid">
+                    ${sorted.map(type => `
+                        <a href="type.html?name=${type.name.toLowerCase()}" 
+                           class="type-card type-${type.name.toLowerCase()}">
+                            <span class="type-icon">${typeIcons[type.name.toLowerCase()] || '❓'}</span>
+                            <div class="type-name">${type.name}</div>
+                            <div class="pokemon-count">${type.pokemon_count} Pokémon</div>
+                        </a>
+                    `).join('')}
+                </div>
+            `;
         }
 
         document.addEventListener('DOMContentLoaded', loadTypes);

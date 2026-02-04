@@ -1,4 +1,5 @@
 let pokemonData = []
+let sortOrder = 'desc'; // 'asc' or 'desc'
 
 const typeColors = {
     grass: "#78C850",
@@ -21,13 +22,63 @@ const typeColors = {
     dark: "#705848"
 }
 
+// API Configuration
+const API_ENDPOINTS = {
+    primary: 'http://127.0.0.1:5000',
+    fallback: 'https://delila-wakeless-maranda.ngrok-free.dev'
+};
+
+let currentEndpoint = API_ENDPOINTS.primary;
+
+/**
+ * Fetch with automatic fallback
+ */
+async function apiFetch(path, options = {}) {
+    const headers = {
+        ...options.headers,
+        "ngrok-skip-browser-warning": "true"
+    };
+    
+    try {
+        const response = await fetch(`${currentEndpoint}${path}`, {
+            ...options,
+            headers
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return response;
+    } catch (error) {
+        if (currentEndpoint === API_ENDPOINTS.primary) {
+            console.warn(`Primary API (${API_ENDPOINTS.primary}) failed, switching to fallback (${API_ENDPOINTS.fallback})`);
+            currentEndpoint = API_ENDPOINTS.fallback;
+            
+            try {
+                const response = await fetch(`${currentEndpoint}${path}`, {
+                    ...options,
+                    headers
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return response;
+            } catch (fallbackError) {
+                console.error('Fallback API also failed:', fallbackError);
+                throw fallbackError;
+            }
+        }
+        
+        throw error;
+    }
+}
+
 async function loadPokedex() {
     try {
-        const res = await fetch("https://delila-wakeless-maranda.ngrok-free.dev/api/pokemon", {
-            headers: {
-                "ngrok-skip-browser-warning": "true"
-            }
-        });
+        const res = await apiFetch("/api/pokemon");
         const data = await res.json()
 
         // Map generation to region
@@ -68,6 +119,7 @@ async function loadPokedex() {
         }))
 
         console.log("Total Pokemon loaded:", pokemonData.length)
+        console.log("Using API endpoint:", currentEndpoint)
 
         document.getElementById("loading-spinner").style.display = "none"
         searchPokemon()
@@ -76,9 +128,20 @@ async function loadPokedex() {
         document.getElementById("loading-spinner").innerHTML = `
             <div style="text-align: center; color: #e74c3c; font-weight: bold;">
                 ⚠️ Failed to load Pokémon data. Please make sure the backend server is running.
+                <br><br>
+                <small>Tried: ${currentEndpoint}</small>
             </div>
         `
     }
+}
+
+function toggleSortOrder() {
+    sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+    const btn = document.getElementById('sort-order-btn');
+    if (btn) {
+        btn.textContent = sortOrder === 'asc' ? '⬆️ Ascending' : '⬇️ Descending';
+    }
+    searchPokemon();
 }
 
 function searchPokemon() {
@@ -137,14 +200,27 @@ function searchPokemon() {
         return true
     })
 
+    // Apply sorting
     list.sort((a, b) => {
-        if (sort === "name") return a.name.localeCompare(b.name)
-        if (sort === "id") return a.id - b.id
-        if (sort === "height") return b.height - a.height
-        if (sort === "weight") return b.weight - a.weight
-        if (sort === "catch_rate") return b.catch_rate - a.catch_rate
-        return b[sort] - a[sort]
-    })
+        let comparison = 0;
+        
+        if (sort === "name") {
+            comparison = a.name.localeCompare(b.name);
+        } else if (sort === "id") {
+            comparison = a.id - b.id;
+        } else if (sort === "height") {
+            comparison = b.height - a.height;
+        } else if (sort === "weight") {
+            comparison = b.weight - a.weight;
+        } else if (sort === "catch_rate") {
+            comparison = b.catch_rate - a.catch_rate;
+        } else {
+            comparison = b[sort] - a[sort];
+        }
+        
+        // Apply sort order
+        return sortOrder === 'asc' ? -comparison : comparison;
+    });
 
     const countText = document.getElementById("count-text")
     countText.innerText = `Found ${list.length} Pokémon${list.length === 1 ? '' : 's'}`
@@ -175,16 +251,17 @@ function renderResults(list) {
         return `
         <li class="pokemon-card" style="border-bottom-color:${color}" onclick="openModal(${p.id})">
             <img src="${img}" alt="${p.name}" loading="lazy">
-            <div style="flex: 1;">
-                <div style="font-size: 0.75rem; color: #95a5a6; font-weight: 700; margin-bottom: 4px;">#${idFormatted}</div>
-                <strong style="text-transform:capitalize; display: block; margin-bottom: 8px;">${p.name}</strong>
-                <div>
-                    <a href="type.html?name=${p.type1}" class="type-badge" style="background:${typeColors[p.type1]}; text-decoration: none; color: white;" onclick="event.stopPropagation()">${p.type1}</a>
-                    ${p.type2 ? `<a href="type.html?name=${p.type2}" class="type-badge" style="background:${typeColors[p.type2]}; text-decoration: none; color: white;" onclick="event.stopPropagation()">${p.type2}</a>` : ''}
+            <div style="flex:1;">
+                <div style="font-size:0.8rem; color:#999; font-weight:600;">#${idFormatted}</div>
+                <strong style="text-transform:capitalize;">${p.name}</strong>
+                <div style="margin-top:8px;">
+                    <span class="type-badge" style="background:${color};">${p.type1}</span>
+                    ${p.type2 ? `<span class="type-badge" style="background:${typeColors[p.type2]};">${p.type2}</span>` : ''}
                 </div>
             </div>
-        </li>`
-    }).join("")
+        </li>
+        `
+    }).join('')
 }
 
 async function openModal(id) {
@@ -195,11 +272,7 @@ async function openModal(id) {
     modalBody.innerHTML = '<div class="spinner"></div>'
     
     try {
-        const res = await fetch(`https://delila-wakeless-maranda.ngrok-free.dev/api/pokemon/${id}`, {
-            headers: {
-                "ngrok-skip-browser-warning": "true"
-            }
-        })
+        const res = await apiFetch(`/api/pokemon/${id}`)
         const p = await res.json()
         
         // Map generation to region
@@ -277,7 +350,13 @@ function closeModal() {
 }
 
 function clearFilters() {
-    document.querySelectorAll("input, select").forEach(e => e.value = "")
+    document.querySelectorAll("input, select").forEach(e => {
+        if (e.type === 'checkbox') {
+            e.checked = false;
+        } else {
+            e.value = "";
+        }
+    });
     searchPokemon()
     
     // Visual feedback

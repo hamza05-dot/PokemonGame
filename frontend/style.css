@@ -20,6 +20,8 @@
 
 html {
     -webkit-text-size-adjust: 100%;
+    overscroll-behavior: none;
+    overflow-x: hidden;
 }
 
 body {
@@ -28,6 +30,7 @@ body {
     min-height: 100vh;
     margin: 0;
     padding: 0;
+    overscroll-behavior: none;
 }
 
 .app-container {
@@ -103,6 +106,39 @@ input::placeholder {
     color: #bdc3c7;
 }
 
+.sort-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.sort-controls select {
+    flex: 1;
+}
+
+.sort-order-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 13px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    box-shadow: var(--shadow-sm);
+}
+
+.sort-order-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.sort-order-btn:active {
+    transform: translateY(0);
+}
+
 .clear-btn {
     background: linear-gradient(135deg, var(--text-dark) 0%, #34495e 100%);
     color: white;
@@ -168,7 +204,7 @@ input::placeholder {
 
 .advanced-filters {
     margin-top: 0px;
-    margin-bottom: 10px
+    margin-bottom: 10px;
     padding: 20px;
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     border-radius: 16px;
@@ -293,6 +329,7 @@ input::placeholder {
     z-index: 1000;
     padding: 20px;
     animation: fadeIn 0.3s ease;
+    overscroll-behavior: contain;
 }
 
 @keyframes fadeIn {
@@ -313,6 +350,7 @@ input::placeholder {
     -webkit-overflow-scrolling: touch;
     box-shadow: 0 24px 64px rgba(0,0,0,0.3);
     animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overscroll-behavior: contain;
 }
 
 @keyframes slideUp {

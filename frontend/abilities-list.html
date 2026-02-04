@@ -13,16 +13,22 @@
             box-sizing: border-box;
         }
 
+        html {
+            overscroll-behavior: none;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
+            padding: 0;
             min-height: 100vh;
+            overscroll-behavior: none;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 20px;
         }
 
         h1 {
@@ -37,7 +43,7 @@
             background: white;
             padding: 20px;
             border-radius: 12px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
@@ -53,6 +59,36 @@
 
         .search-box input:focus {
             border-color: #667eea;
+        }
+
+        .controls {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .sort-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .sort-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
         }
 
         .abilities-grid {
@@ -139,22 +175,60 @@
 </head>
 <body>
     <!-- NAVIGATION BAR -->
-    <nav class="nav-bar">
+    <nav class="navbar">
         <div class="nav-container">
-            <a href="index.html" class="nav-brand">🔍 PokéSearch</a>
-            <div class="nav-links">
-                <a href="index.html" class="nav-btn">🏠 Home</a>
-                <a href="types-list.html" class="nav-btn">⚡ Types</a>
-                <a href="abilities-list.html" class="nav-btn active">💪 Abilities</a>
+            <a href="index.html" class="nav-logo">
+                <span class="logo-icon">🔍</span>
+                <span class="logo-text">PokéSearch</span>
+            </a>
+            
+            <button class="nav-toggle" id="navToggle" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            
+            <div class="nav-menu" id="navMenu">
+                <a href="index.html" class="nav-link">
+                    <span class="link-icon">🏠</span>
+                    <span>Home</span>
+                </a>
+                <a href="types-list.html" class="nav-link">
+                    <span class="link-icon">⚡</span>
+                    <span>Types</span>
+                </a>
+                <a href="abilities-list.html" class="nav-link active">
+                    <span class="link-icon">💪</span>
+                    <span>Abilities</span>
+                </a>
+                <a class="nav-link disabled">
+                    <span class="link-icon">⭐</span>
+                    <span>Favourites</span>
+                </a>
+                <a class="nav-link disabled">
+                    <span class="link-icon">👥</span>
+                    <span>Team</span>
+                </a>
+                <a class="nav-link disabled">
+                    <span class="link-icon">👤</span>
+                    <span>Profile</span>
+                </a>
             </div>
         </div>
     </nav>
 
     <div class="container">
+        <a href="index.html" class="back-btn">← Back to Home</a>
         <h1>💪 All Pokémon Abilities</h1>
         
         <div class="search-box">
             <input type="text" id="ability-search" placeholder="🔍 Search abilities by name..." oninput="filterAbilities()">
+        </div>
+
+        <div class="controls">
+            <button class="sort-btn" onclick="toggleSort()">
+                <span id="sort-text">⬇️ Sort: A-Z</span>
+            </button>
         </div>
 
         <div id="abilities-container">
@@ -162,12 +236,60 @@
         </div>
     </div>
 
+    <script src="navigation.js"></script>
     <script>
         let allAbilities = [];
+        let sortAsc = true;
+
+        // API Configuration
+        const API_ENDPOINTS = {
+            primary: 'http://127.0.0.1:5000',
+            fallback: 'https://delila-wakeless-maranda.ngrok-free.dev'
+        };
+
+        let currentEndpoint = API_ENDPOINTS.primary;
+
+        async function apiFetch(path, options = {}) {
+            const headers = {
+                ...options.headers,
+                "ngrok-skip-browser-warning": "true"
+            };
+            
+            try {
+                const response = await fetch(`${currentEndpoint}${path}`, {
+                    ...options,
+                    headers
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return response;
+            } catch (error) {
+                if (currentEndpoint === API_ENDPOINTS.primary) {
+                    console.warn(`Primary API failed, switching to fallback`);
+                    currentEndpoint = API_ENDPOINTS.fallback;
+                    
+                    const response = await fetch(`${currentEndpoint}${path}`, {
+                        ...options,
+                        headers
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    return response;
+                }
+                
+                throw error;
+            }
+        }
 
         async function loadAbilities() {
             try {
-                const response = await fetch('http://127.0.0.1:5000/api/abilities');
+                const response = await apiFetch('/api/abilities');
                 allAbilities = await response.json();
                 displayAbilities(allAbilities);
             } catch (error) {
@@ -178,6 +300,12 @@
             }
         }
 
+        function toggleSort() {
+            sortAsc = !sortAsc;
+            document.getElementById('sort-text').textContent = sortAsc ? '⬆️ Sort: A-Z' : '⬇️ Sort: Z-A';
+            filterAbilities();
+        }
+
         function displayAbilities(abilities) {
             const container = document.getElementById('abilities-container');
             
@@ -186,9 +314,15 @@
                 return;
             }
 
+            // Sort abilities
+            const sorted = [...abilities].sort((a, b) => {
+                const comparison = a.name.localeCompare(b.name);
+                return sortAsc ? comparison : -comparison;
+            });
+
             container.innerHTML = `
                 <div class="abilities-grid">
-                    ${abilities.map(ability => `
+                    ${sorted.map(ability => `
                         <a href="abilitie.html?id=${ability.id}" class="ability-card">
                             <div class="ability-name">${ability.name}</div>
                             <div class="ability-description">

@@ -40,6 +40,60 @@ const typeIcons = {
     fairy: "🧚"
 };
 
+// API Configuration
+const API_ENDPOINTS = {
+    primary: 'http://127.0.0.1:5000',
+    fallback: 'https://delila-wakeless-maranda.ngrok-free.dev'
+};
+
+let currentEndpoint = API_ENDPOINTS.primary;
+
+/**
+ * Fetch with automatic fallback
+ */
+async function apiFetch(path, options = {}) {
+    const headers = {
+        ...options.headers,
+        "ngrok-skip-browser-warning": "true"
+    };
+    
+    try {
+        const response = await fetch(`${currentEndpoint}${path}`, {
+            ...options,
+            headers
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return response;
+    } catch (error) {
+        if (currentEndpoint === API_ENDPOINTS.primary) {
+            console.warn(`Primary API failed, switching to fallback: ${error.message}`);
+            currentEndpoint = API_ENDPOINTS.fallback;
+            
+            try {
+                const response = await fetch(`${currentEndpoint}${path}`, {
+                    ...options,
+                    headers
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return response;
+            } catch (fallbackError) {
+                console.error('Fallback API also failed:', fallbackError);
+                throw fallbackError;
+            }
+        }
+        
+        throw error;
+    }
+}
+
 async function loadType() {
     const urlParams = new URLSearchParams(window.location.search);
     const typeName = urlParams.get('name');
@@ -53,17 +107,12 @@ async function loadType() {
     }
 
     try {
-        // Updated URL to target the correct type endpoint and fixed variable name 'res'
-        const res = await fetch(`https://delila-wakeless-maranda.ngrok-free.dev/api/types/${typeName.toLowerCase()}`, {
-            headers: {
-                "ngrok-skip-browser-warning": "true"
-            }
-        });
-        
-        if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`);
-        }
+        const res = await apiFetch(`/api/types/${typeName.toLowerCase()}`);
         const data = await res.json();
+        
+        // Sort Pokemon by ID
+        data.pokemon.sort((a, b) => a.id - b.id);
+        
         renderType(data);
     } catch (err) {
         console.error("Fetch error:", err);
@@ -113,7 +162,7 @@ function renderType(data) {
     const eff = data.effectiveness;
     
     container.innerHTML = `
-        <a href="index.html" class="back-btn">← Back to PokéDex</a>
+        <a href="types-list.html" class="back-btn">← Back to Types</a>
 
         <div class="type-header" style="border-top-color: ${typeColor};">
             <h1 style="color: ${typeColor};">
