@@ -11,11 +11,17 @@ async function loadAbility() {
     }
 
     try {
-        const response = await fetch(`http://127.0.0.1:5000/api/abilities/${abilityId}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        // Updated URL to fetch specific ability and fixed variable reference
+        const res = await fetch(`https://delila-wakeless-maranda.ngrok-free.dev/api/abilities/${abilityId}`, {
+            headers: {
+                "ngrok-skip-browser-warning": "true"
+            }
+        });
+
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
         }
-        const data = await response.json();
+        const data = await res.json();
         renderAbility(data);
     } catch (err) {
         console.error("Fetch error:", err);
@@ -52,7 +58,7 @@ function renderAbility(data) {
         <a href="index.html" class="back-btn">← Back to Pokédex</a>
 
         <div class="ability-header">
-            <h1>${data.name}</h1>
+            <h1 style="text-transform: capitalize;">${data.name}</h1>
             <p class="ability-description">${data.description || 'No description available.'}</p>
             <span class="pokemon-count">${data.pokemon_count} Pokémon have this ability</span>
         </div>

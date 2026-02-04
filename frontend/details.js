@@ -15,11 +15,17 @@ async function loadPokemon() {
     }
 
     try {
-        const response = await fetch(`http://127.0.0.1:5000/api/pokemon/${id}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        // Fixed: Use the specific ID in the URL and match the variable name 'res'
+        const res = await fetch(`https://delila-wakeless-maranda.ngrok-free.dev/api/pokemon/${id}`, {
+            headers: {
+                "ngrok-skip-browser-warning": "true"
+            }
+        });
+        
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
         }
-        const data = await response.json();
+        const data = await res.json();
         renderDetails(data);
     } catch (err) {
         console.error("Fetch error:", err);
@@ -143,7 +149,6 @@ function renderTypeEffectiveness(effectiveness) {
 
     const multipliers = effectiveness.defensive.multipliers;
 
-    // Group types by multiplier
     const grouped = {
         immune: [],      // 0x
         veryResistant: [], // 0.25x
@@ -166,15 +171,9 @@ function renderTypeEffectiveness(effectiveness) {
         }
     });
 
-    const hasAnyEffectiveness = grouped.immune.length > 0 || 
-                                grouped.veryResistant.length > 0 || 
-                                grouped.resistant.length > 0 || 
-                                grouped.weak.length > 0 || 
-                                grouped.veryWeak.length > 0;
+    const hasAnyEffectiveness = Object.values(grouped).some(arr => arr.length > 0);
 
-    if (!hasAnyEffectiveness) {
-        return '';
-    }
+    if (!hasAnyEffectiveness) return '';
 
     return `
         <div class="info-card full-width">
@@ -191,9 +190,7 @@ function renderTypeEffectiveness(effectiveness) {
 }
 
 function renderEffectivenessCategory(title, types, category, emoji) {
-    if (types.length === 0) {
-        return '';
-    }
+    if (types.length === 0) return '';
 
     return `
         <div class="effectiveness-category ${category}">
@@ -263,10 +260,7 @@ function renderEvolutionChain(chain, currentId, mainColor) {
         `;
     }
 
-    // Flatten the evolution chain into a linear array
     const linearChain = flattenEvolutionChain(chain);
-    
-    // Check if there are branching evolutions
     const hasBranches = checkForBranches(chain);
 
     return `
@@ -281,14 +275,10 @@ function renderEvolutionChain(chain, currentId, mainColor) {
 
 function flattenEvolutionChain(node, result = []) {
     if (!node) return result;
-    
     result.push(node);
-    
-    // For linear evolution, only follow the first evolution path
     if (node.evolutions && node.evolutions.length > 0) {
         flattenEvolutionChain(node.evolutions[0], result);
     }
-    
     return result;
 }
 
@@ -303,13 +293,11 @@ function checkForBranches(node) {
 
 function renderLinearEvolution(chain, currentId, mainColor) {
     let html = '<div class="evo-linear">';
-    
     chain.forEach((pokemon, index) => {
         const isCurrent = pokemon.id === currentId;
         const apiImg = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.id}.png`;
         const localImg = `./images/${pokemon.id}.png`;
         
-        // Render Pokemon node
         html += `
             <div class="evo-node ${isCurrent ? 'current' : 'clickable'}"
                  ${!isCurrent ? `onclick="window.location.href='details.html?id=${pokemon.id}'"` : ''}
@@ -326,7 +314,6 @@ function renderLinearEvolution(chain, currentId, mainColor) {
             </div>
         `;
         
-        // Render arrow if not the last pokemon
         if (index < chain.length - 1) {
             const nextPokemon = chain[index + 1];
             const requirement = nextPokemon.requirement || pokemon.evolutions?.[0]?.requirement || 'Level Up';
@@ -338,7 +325,6 @@ function renderLinearEvolution(chain, currentId, mainColor) {
             `;
         }
     });
-    
     html += '</div>';
     return html;
 }
@@ -349,8 +335,6 @@ function renderBranchedEvolution(node, currentId, mainColor) {
     const localImg = `./images/${node.id}.png`;
     
     let html = '<div class="evo-stage">';
-    
-    // Render the base Pokemon
     html += `
         <div class="evo-node ${isCurrent ? 'current' : 'clickable'}"
              ${!isCurrent ? `onclick="window.location.href='details.html?id=${node.id}'"` : ''}
@@ -367,7 +351,6 @@ function renderBranchedEvolution(node, currentId, mainColor) {
         </div>
     `;
     
-    // If there are multiple evolutions, render branches
     if (node.evolutions && node.evolutions.length > 1) {
         html += `<div class="evo-arrow-main"><div class="arrow">→</div></div><div class="evo-branches">`;
         for (const evo of node.evolutions) {
@@ -382,7 +365,6 @@ function renderBranchedEvolution(node, currentId, mainColor) {
         }
         html += '</div>';
     } else if (node.evolutions && node.evolutions.length === 1) {
-        // Single evolution - check if it branches later
         const evo = node.evolutions[0];
         html += `
             <div class="evo-arrow">
@@ -399,7 +381,6 @@ function renderBranchedEvolution(node, currentId, mainColor) {
 
 function renderEvolutionNodeSimple(node, currentId, mainColor) {
     if (!node) return '';
-    
     const isCurrent = node.id === currentId;
     const apiImg = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${node.id}.png`;
     const localImg = `./images/${node.id}.png`;

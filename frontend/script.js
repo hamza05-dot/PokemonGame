@@ -23,7 +23,11 @@ const typeColors = {
 
 async function loadPokedex() {
     try {
-        const res = await fetch("http://127.0.0.1:5000/api/pokemon")
+        const res = await fetch("https://delila-wakeless-maranda.ngrok-free.dev/api/pokemon", {
+            headers: {
+                "ngrok-skip-browser-warning": "true"
+            }
+        });
         const data = await res.json()
 
         // Map generation to region
@@ -191,7 +195,11 @@ async function openModal(id) {
     modalBody.innerHTML = '<div class="spinner"></div>'
     
     try {
-        const res = await fetch(`http://127.0.0.1:5000/api/pokemon/${id}`)
+        const res = await fetch(`https://delila-wakeless-maranda.ngrok-free.dev/api/pokemon/${id}`, {
+            headers: {
+                "ngrok-skip-browser-warning": "true"
+            }
+        })
         const p = await res.json()
         
         // Map generation to region
@@ -274,10 +282,12 @@ function clearFilters() {
     
     // Visual feedback
     const btn = document.querySelector('.clear-btn')
-    btn.style.transform = 'scale(0.95)'
-    setTimeout(() => {
-        btn.style.transform = ''
-    }, 150)
+    if(btn) {
+        btn.style.transform = 'scale(0.95)'
+        setTimeout(() => {
+            btn.style.transform = ''
+        }, 150)
+    }
 }
 
 // Initialize on page load

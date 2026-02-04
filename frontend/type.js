@@ -53,11 +53,17 @@ async function loadType() {
     }
 
     try {
-        const response = await fetch(`http://127.0.0.1:5000/api/types/${typeName}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        // Updated URL to target the correct type endpoint and fixed variable name 'res'
+        const res = await fetch(`https://delila-wakeless-maranda.ngrok-free.dev/api/types/${typeName.toLowerCase()}`, {
+            headers: {
+                "ngrok-skip-browser-warning": "true"
+            }
+        });
+        
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
         }
-        const data = await response.json();
+        const data = await res.json();
         renderType(data);
     } catch (err) {
         console.error("Fetch error:", err);
@@ -121,7 +127,6 @@ function renderType(data) {
             <h2>⚔️ Type Effectiveness</h2>
             
             <div class="effectiveness-grid">
-                <!-- Offensive -->
                 <div class="effectiveness-card">
                     <h3><span class="icon">⚔️</span> Strong Against (Attack)</h3>
                     <div class="type-badges-grid">
@@ -143,7 +148,6 @@ function renderType(data) {
                     </div>
                 </div>
 
-                <!-- Defensive -->
                 <div class="effectiveness-card">
                     <h3><span class="icon">💔</span> Weak To (Defense)</h3>
                     <div class="type-badges-grid">

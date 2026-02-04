@@ -10,16 +10,35 @@
 </head>
 <body>
     <!-- NAVIGATION BAR -->
-    <nav class="nav-bar">
-        <div class="nav-container">
-            <a href="index.html" class="nav-brand">🔍 PokéSearch</a>
-            <div class="nav-links">
-                <a href="index.html" class="nav-btn">🏠 Home</a>
-                <a href="types-list.html" class="nav-btn active">⚡ Types</a>
-                <a href="abilities-list.html" class="nav-btn">💪 Abilities</a>
-            </div>
+<nav class="navbar">
+    <div class="nav-container">
+        <a href="index.html" class="nav-logo">
+            <span class="logo-icon">🔍</span>
+            <span class="logo-text">PokéSearch</span>
+        </a>
+        
+        <button class="nav-toggle" id="navToggle" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        
+        <div class="nav-menu" id="navMenu">
+            <a href="index.html" class="nav-link active">
+                <span class="link-icon">🏠</span>
+                <span>Home</span>
+            </a>
+            <a href="types-list.html" class="nav-link">
+                <span class="link-icon">⚡</span>
+                <span>Types</span>
+            </a>
+            <a href="abilities-list.html" class="nav-link">
+                <span class="link-icon">💪</span>
+                <span>Abilities</span>
+            </a>
         </div>
-    </nav>
+    </div>
+</nav>
 
     <div id="type-container">
         <p style="color:white; text-align:center;">Loading...</p>
