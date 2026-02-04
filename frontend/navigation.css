@@ -1,7 +1,16 @@
 /* ===================================
+   GLOBAL OVERFLOW FIXES
+   =================================== */
+html, body {
+    max-width: 100%;
+    overflow-x: hidden; /* Prevents side-scrolling to see the hidden menu */
+    margin: 0;
+    padding: 0;
+}
+
+/* ===================================
    NAVIGATION BAR - ENHANCED STYLES
    =================================== */
-
 .navbar {
     background: white;
     padding: 15px 40px;
@@ -172,114 +181,6 @@
     opacity: 1;
 }
 
-.nav-link.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    position: relative;
-}
-
-.nav-link.disabled:hover {
-    background: transparent;
-    color: #666;
-    transform: none;
-    box-shadow: none;
-}
-
-.nav-link.disabled::after {
-    content: '🚧 Coming Soon';
-    position: absolute;
-    bottom: calc(100% + 10px);
-    left: 50%;
-    transform: translateX(-50%);
-    background: #333;
-    color: white;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 0.75rem;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-}
-
-.nav-link.disabled::before {
-    content: '';
-    position: absolute;
-    bottom: calc(100% + 2px);
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-top: 6px solid #333;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.nav-link.disabled:hover::after,
-.nav-link.disabled:hover::before {
-    opacity: 1;
-}
-
-.link-icon {
-    font-size: clamp(1rem, 2vw, 1.1rem);
-    transition: transform 0.3s ease;
-}
-
-.nav-link:hover .link-icon {
-    transform: scale(1.2);
-}
-
-/* ===================================
-   BACK BUTTON
-   =================================== */
-.back-btn {
-    background: white;
-    border: 2px solid #ddd;
-    padding: 10px 20px;
-    border-radius: 12px;
-    cursor: pointer;
-    font-weight: 700;
-    margin-bottom: 20px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    font-size: clamp(0.9rem, 2vw, 1rem);
-    display: inline-block;
-    text-decoration: none;
-    color: #333;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.back-btn:hover {
-    background: #f8f9fa;
-    border-color: #667eea;
-    transform: translateX(-5px) translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-}
-
-.back-btn:active {
-    transform: translateX(-3px) translateY(0);
-}
-
-/* ===================================
-   TABLET RESPONSIVE (768px - 1024px)
-   =================================== */
-@media (max-width: 1024px) {
-    .navbar {
-        padding: 15px 30px;
-    }
-
-    .nav-menu {
-        gap: 5px;
-    }
-
-    .nav-link {
-        padding: 8px 15px;
-        font-size: 0.9rem;
-    }
-}
-
 /* ===================================
    MOBILE RESPONSIVE (< 768px)
    =================================== */
@@ -294,93 +195,31 @@
 
     .nav-menu {
         position: fixed;
-        top: 0; /* Changed from 59px to cover full height */
-        right: -100%;
-        width: 280px; /* Fixed width for consistency */
+        top: 0;
+        right: 0;
+        /* Using visibility and transform instead of right: -100% prevents layout stretching */
+        transform: translateX(100%); 
+        visibility: hidden;
+        width: 280px;
         height: 100vh;
         background: white;
         flex-direction: column;
         gap: 0;
-        padding: 80px 0 25px 0; /* Padding top to avoid the toggle button */
+        padding: 80px 0 25px 0;
         box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s;
         z-index: 999;
-        overflow-y: auto;
-        /* Using transform for smoother performance */
-        transform: translateX(0); 
     }
 
     .nav-menu.active {
-        right: 0;
+        transform: translateX(0);
+        visibility: visible;
     }
 
     .nav-link {
         width: 100%;
         padding: 18px 30px;
         border-radius: 0;
-        border-left: 4px solid transparent;
         justify-content: flex-start;
-        background: white; /* Ensure visibility */
-    }
-
-    .nav-link:hover {
-        background: #f8f9fa;
-        border-left-color: #667eea;
-        transform: translateX(5px);
-    }
-
-    .nav-link.active {
-        background: linear-gradient(90deg, rgba(102, 126, 234, 0.1) 0%, transparent 100%) !important;
-        color: #667eea;
-        border-left-color: #667eea;
-    }
-
-    /* Fixed the overlay appearance */
-    .mobile-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 998;
-        backdrop-filter: blur(4px);
-    }
-
-    .mobile-overlay.active {
-        display: block;
-    }
-}
-
-/* ===================================
-   SMALL MOBILE (< 480px)
-   =================================== */
-@media (max-width: 480px) {
-    .navbar {
-        padding: 10px 15px;
-    }
-
-    .nav-menu {
-        width: 80vw;
-    }
-
-    .nav-link {
-        padding: 15px 20px;
-        font-size: 0.95rem;
-    }
-
-    .logo-text {
-        font-size: 1.1rem;
-    }
-}
-
-/* ===================================
-   REDUCED MOTION & ACCESSIBILITY
-   =================================== */
-@media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        transition-duration: 0.01ms !important;
     }
 }
