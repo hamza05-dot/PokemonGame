@@ -1,192 +1,208 @@
 /* ===================================
-   1. Base Reset & Container
+   ABILITY PAGE - ENHANCED STYLES
    =================================== */
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+/* FIXED: Root level locking to prevent white space/rubber-banding */
+html {
+    height: 100%;
+    width: 100%;
+    overflow: hidden; 
+    overscroll-behavior: none;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    background-attachment: fixed;
-    padding: 30px 40px;
-    min-height: 100vh;
-    color: #333;
 }
 
-#detail-container {
-    max-width: 1200px;
-    margin: 0 auto;
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: transparent;
+    padding: clamp(15px, 3vw, 25px);
+    height: 100%;
+    width: 100%;
+    
+    /* FIXED: Body handles the scroll */
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: none;
+    
     animation: fadeIn 0.6s ease-out;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+#ability-container {
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 /* ===================================
-   2. Header & Top Info
+   ABILITY HEADER
    =================================== */
-.detail-header {
+.ability-header {
     background: white;
     border-radius: 20px;
     padding: 40px;
     margin-bottom: 25px;
-    display: flex;
-    align-items: center;
-    gap: 40px;
-    border-top: 6px solid;
+    border-top: 6px solid #667eea;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-    transition: transform 0.3s ease;
+    animation: slideUp 0.6s ease-out;
     position: relative;
+    overflow: hidden;
 }
 
-.header-sprite img {
-    width: 200px;
-    height: 200px;
-    object-fit: contain;
-    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.2));
-}
-
-.header-info h1 {
-    font-size: 3.5rem;
+.ability-header h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
     margin: 10px 0 20px 0;
+    color: #667eea;
     text-transform: capitalize;
     font-weight: 800;
+    letter-spacing: -1px;
 }
 
-/* ===================================
-   3. Badges
-   =================================== */
-.types { display: flex; gap: 12px; }
-
-.type-badge {
-    padding: 10px 24px;
-    border-radius: 25px;
-    color: white;
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size: 0.9rem;
-    text-decoration: none;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+.ability-description {
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+    line-height: 1.8;
+    color: #555;
+    margin-top: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border-left: 4px solid #667eea;
 }
 
-.ability-badge {
+.pokemon-count {
+    display: inline-block;
     background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
-    padding: 12px 20px;
+    padding: 10px 20px;
     border-radius: 25px;
     font-weight: 700;
-    display: inline-block;
-    margin: 5px;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.abilities-list { display: flex; flex-wrap: wrap; gap: 8px; }
-
-/* ===================================
-   4. TOOLTIP FIXED (ACCURATE)
-   =================================== */
-.ability-tooltip {
-    position: absolute;
-    top: 0; /* JS will move this via transform */
-    left: 0;
-    background: #2c3e50;
-    color: white;
-    padding: 14px 18px;
-    border-radius: 12px;
-    font-size: 0.9rem;
-    max-width: 280px;
-    z-index: 9999;
-    pointer-events: none;
-    opacity: 0;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    text-align: center;
-    border: 1px solid rgba(255,255,255,0.2);
-    /* Transition only opacity to prevent jumping */
-    transition: opacity 0.15s ease-out;
-    /* Improves render performance for JS movement */
-    will-change: transform; 
-}
-
-.ability-tooltip.show {
-    opacity: 1;
-}
-
-/* Tooltip Arrow */
-.ability-tooltip::after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 50%;
-    margin-left: -8px;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-top: 8px solid #2c3e50;
+    margin-top: 20px;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 /* ===================================
-   5. Cards & Content
+   POKEMON SECTION & CARDS
    =================================== */
-.detail-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
-
-.info-card {
+.pokemon-section {
     background: white;
     border-radius: 20px;
-    padding: 30px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    padding: clamp(20px, 4vw, 40px);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    animation: slideUp 0.8s ease-out 0.2s backwards;
 }
 
-.info-card.full-width { grid-column: 1 / -1; }
+.pokemon-section h2 {
+    margin-top: 0;
+    margin-bottom: 30px;
+    color: #2c3e50;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    border-bottom: 3px solid #f1f3f5;
+    padding-bottom: 15px;
+    font-weight: 700;
+}
 
-.info-card h2 { margin-bottom: 20px; font-size: 1.5rem; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+.pokemon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 20px;
+}
 
-.info-grid { display: grid; gap: 12px; }
-
-.info-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 15px;
+.pokemon-card {
     background: #f8f9fa;
-    border-radius: 8px;
+    border: 2px solid #e1e8ed;
+    border-radius: 15px;
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: #333;
+    display: block;
 }
 
-/* ===================================
-   6. Stats
-   =================================== */
-.stat-row { display: grid; grid-template-columns: 80px 50px 1fr; align-items: center; gap: 15px; padding: 5px 0; }
-.stat-bar { background: #e9ecef; height: 12px; border-radius: 10px; overflow: hidden; }
-.stat-fill { height: 100%; transition: width 1s ease; border-radius: 10px; }
+.pokemon-card:hover {
+    transform: translateY(-8px) scale(1.05);
+    border-color: #667eea;
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+}
 
-/* ===================================
-   7. Evolution
-   =================================== */
-.evolution-tree { padding: 20px; background: #fdfdfd; border-radius: 15px; border: 1px solid #eee; }
-.evo-linear, .evo-stage { display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; }
-.evo-node { text-align: center; padding: 15px; }
-.evo-node img { width: 90px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); cursor: pointer; }
-.evo-name { font-weight: 700; text-transform: capitalize; margin-top: 5px; }
-.requirement { font-size: 0.7rem; background: #fff3cd; padding: 4px 10px; border-radius: 10px; color: #856404; }
-.arrow { font-size: 1.5rem; color: #ccc; }
+.pokemon-card img {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    margin: 0 auto 10px;
+    display: block;
+    transition: transform 0.3s ease;
+}
 
-/* ===================================
-   8. Type Colors
-   =================================== */
-.type-grass { background-color: #78C850; } .type-fire { background-color: #F08030; }
-.type-water { background-color: #6890F0; } .type-bug { background-color: #A8B820; }
-.type-normal { background-color: #A8A878; } .type-poison { background-color: #A040A0; }
-.type-electric { background-color: #F8D030; color: #333; } .type-ground { background-color: #E0C068; }
-.type-fairy { background-color: #EE99AC; } .type-fighting { background-color: #C03028; }
-.type-psychic { background-color: #F85888; } .type-rock { background-color: #B8A038; }
-.type-ghost { background-color: #705898; } .type-ice { background-color: #98D8D8; }
-.type-dragon { background-color: #7038F8; } .type-flying { background-color: #A890F0; }
-.type-steel { background-color: #B8B8D0; } .type-dark { background-color: #705848; }
+.pokemon-card:hover img {
+    transform: scale(1.15) rotate(-5deg);
+}
 
-@media (max-width: 768px) {
-    .detail-header { flex-direction: column; text-align: center; }
-    .header-sprite img { width: 150px; }
+.pokemon-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2c3e50;
+    text-transform: capitalize;
+    margin-bottom: 8px;
+}
+
+.pokemon-id {
+    font-size: 0.85rem;
+    color: #95a5a6;
+    font-weight: 600;
+}
+
+/* TYPE BADGES */
+.type-badges {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.type-badge {
+    padding: 4px 10px;
+    border-radius: 10px;
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+}
+
+/* Type colors */
+.type-normal { background: #A8A878; }
+.type-fire { background: #F08030; }
+.type-water { background: #6890F0; }
+.type-electric { background: #F8D030; color: #333; }
+.type-grass { background: #78C850; }
+.type-ice { background: #98D8D8; }
+.type-fighting { background: #C03028; }
+.type-poison { background: #A040A0; }
+.type-ground { background: #E0C068; }
+.type-flying { background: #A890F0; }
+.type-psychic { background: #F85888; }
+.type-bug { background: #A8B820; }
+.type-rock { background: #B8A038; }
+.type-ghost { background: #705898; }
+.type-dragon { background: #7038F8; }
+.type-dark { background: #705848; }
+.type-steel { background: #B8B8D0; }
+.type-fairy { background: #EE99AC; }
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
 }
