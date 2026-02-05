@@ -1,25 +1,18 @@
 /* ===================================
    GLOBAL OVERFLOW FIXES
    =================================== */
-html {
-    /* Keeping it simple: let the browser handle the primary scrollbar */
-    scroll-behavior: smooth;
-}
-
-body {
+html, body {
     margin: 0;
     padding: 0;
     width: 100%;
-    min-height: 100vh;
-    /* This ensures content is visible and scrollable */
-    overflow-x: hidden; 
-    overflow-y: visible; 
+    /* Ensure no horizontal overflow at the root level */
+    overflow-x: hidden;
     position: relative;
 }
 
-/* Prevent scrolling only when mobile menu is active */
-body.menu-open {
-    overflow: hidden;
+body {
+    min-height: 100vh;
+    overflow-y: auto;
 }
 
 /* ===================================
@@ -191,13 +184,16 @@ body.menu-open {
         gap: 0;
         padding: 80px 0 25px 0;
         box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s;
         z-index: 999;
         overflow-y: auto;
+        /* FIXED: Hide visibility so the browser doesn't scroll to it */
+        visibility: hidden;
     }
 
     .nav-menu.active {
         transform: translateX(0);
+        visibility: visible;
     }
 
     .nav-link {
