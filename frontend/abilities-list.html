@@ -239,7 +239,7 @@
 
     <script src="navigation.js"></script>
     <script>
-        let allAbilities = [];
+let allAbilities = [];
         let sortAsc = true;
 
         const API_ENDPOINTS = {
@@ -249,28 +249,43 @@
 
         let currentEndpoint = API_ENDPOINTS.primary;
 
-        async function apiFetch(path) {
-            const headers = { "ngrok-skip-browser-warning": "true" };
+        /**
+         * Corrected apiFetch with proper await and headers for ngrok
+         */
+        async function apiFetch(path, options = {}) {
+            const headers = { 
+                ...options.headers, 
+                "ngrok-skip-browser-warning": "true" 
+            };
+            
             try {
-                const response = await fetch(`${currentEndpoint}${path}`, { headers });
-                if (!response.ok) throw new Error();
+                const response = await fetch(`${currentEndpoint}${path}`, { ...options, headers });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 return response;
             } catch (error) {
+                // If the local API fails, we MUST await the fallback call
                 if (currentEndpoint === API_ENDPOINTS.primary) {
+                    console.warn("Primary API failed, switching to fallback...");
                     currentEndpoint = API_ENDPOINTS.fallback;
-                    return fetch(`${currentEndpoint}${path}`, { headers });
+                    
+                    // Added 'await' here so the function waits for ngrok to respond
+                    const response = await fetch(`${currentEndpoint}${path}`, { ...options, headers });
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    return response;
                 }
                 throw error;
             }
         }
 
         async function loadAbilities() {
+            const container = document.getElementById('abilities-container');
             try {
                 const response = await apiFetch('/api/abilities');
                 allAbilities = await response.json();
                 displayAbilities(allAbilities);
             } catch (error) {
-                document.getElementById('abilities-container').innerHTML = `<p class="no-results">Failed to connect to API.</p>`;
+                console.error("Load failed:", error);
+                container.innerHTML = `<p class="no-results">Failed to connect to API at ${currentEndpoint}.<br>Error: ${error.message}</p>`;
             }
         }
 
