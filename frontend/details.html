@@ -2,23 +2,50 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="icon" type="image/png" href="favicon.png">
     <title>Pokemon Details - PokéDex</title>
     <link rel="stylesheet" href="details.css">
     <link rel="stylesheet" href="navigation.css">
     <style>
+        /* 1. COMPLETELY DISABLE OVERSCROLL AT THE ROOT */
         html {
-            overscroll-behavior: none;
+            height: 100%;
+            width: 100%;
+            overflow: hidden; /* Prevent the html element itself from scrolling */
+            overscroll-behavior: none; /* Disable the rubber-band/white space effect */
         }
+
         body {
-            overscroll-behavior: none;
-            padding-top: 0;
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            /* 2. ENSURE BACKGROUND IS FIXED AND COVERS EVERYTHING */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
+            color: #333;
+            
+            /* 3. ALLOW SCROLLING ONLY ON THE BODY */
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch; /* Smooth scroll for iOS */
+            overscroll-behavior-y: none; /* Secondary block for mobile browsers */
+        }
+
+        /* Buffer for navigation if it's sticky/fixed */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        #detail-container {
+            padding-bottom: 50px; /* Prevent content from hitting the bottom edge */
         }
     </style>
 </head>
 <body>
-    <!-- NAVIGATION BAR -->
     <nav class="navbar">
         <div class="nav-container">
             <a href="index.html" class="nav-logo">

@@ -2,24 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="icon" type="image/png" href="favicon.png">
     <title>Type Details - PokéDex</title>
     <link rel="stylesheet" href="type.css">
     <link rel="stylesheet" href="navigation.css">
     <style>
-        html {
-            overscroll-behavior: none;
-        }
-        body {
-            overscroll-behavior: none;
-            padding-top: 0;
-        }
+        /* RESTORED POKEMON CARD STYLES */
         .pokemon-section {
             background: white;
             border-radius: 15px;
             padding: 30px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
         }
         .pokemon-section h2 {
             margin-top: 0;
@@ -89,6 +84,7 @@
             text-transform: uppercase;
             font-size: 0.7rem;
             letter-spacing: 0.5px;
+            display: inline-block;
         }
         .type-badges-grid {
             display: flex;
@@ -103,10 +99,8 @@
         .type-badges-grid .type-badge:hover {
             transform: scale(1.1);
         }
-        .empty-state {
-            color: #999;
-            font-style: italic;
-        }
+        .empty-state { color: #999; font-style: italic; }
+
         /* Type colors */
         .type-normal { background: #A8A878; }
         .type-fire { background: #F08030; }
@@ -129,7 +123,6 @@
     </style>
 </head>
 <body>
-    <!-- NAVIGATION BAR -->
     <nav class="navbar">
         <div class="nav-container">
             <a href="index.html" class="nav-logo">
@@ -172,9 +165,10 @@
         </div>
     </nav>
 
-    <div id="type-container" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
-        <p style="color:white; text-align:center;">Loading...</p>
+    <div id="type-container">
+        <p style="color:white; text-align:center; padding-top: 50px;">Loading...</p>
     </div>
+    
     <script src="navigation.js"></script>
     <script src="type.js"></script>
 </body>

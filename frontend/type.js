@@ -162,8 +162,6 @@ function renderType(data) {
     const eff = data.effectiveness;
     
     container.innerHTML = `
-        <a href="types-list.html" class="back-btn">← Back to Types</a>
-
         <div class="type-header" style="border-top-color: ${typeColor};">
             <h1 style="color: ${typeColor};">
                 <span class="type-icon" style="background: ${typeColor};">${typeIcon}</span>

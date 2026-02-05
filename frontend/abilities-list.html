@@ -2,231 +2,233 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="icon" type="image/png" href="favicon.png">
-    <title>All Abilities - PokéDex</title>
+    <title>All Abilities - PokéSearch</title>
     <link rel="stylesheet" href="navigation.css">
     <style>
+        /* ===================================
+           ABILITIES LIST - ENHANCED STYLES
+           =================================== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        /* Root level locking for mobile bounce fix */
         html {
+            height: 100%;
+            width: 100%;
+            overflow: hidden; 
             overscroll-behavior: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: transparent;
             padding: 0;
-            min-height: 100vh;
-            overscroll-behavior: none;
+            height: 100%;
+            width: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-y: none;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: clamp(15px, 3vw, 30px);
         }
 
         h1 {
             color: white;
             text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            font-size: clamp(2rem, 5vw, 3rem);
+            margin-bottom: 25px;
+            font-weight: 800;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
+        /* SEARCH & CONTROLS */
         .search-box {
             background: white;
             padding: 20px;
-            border-radius: 12px;
+            border-radius: 15px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
 
         .search-box input {
             width: 100%;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
+            padding: 15px 20px;
+            border: 2px solid #edf2f7;
+            border-radius: 12px;
+            font-size: 1.1rem;
             outline: none;
-            transition: border-color 0.3s;
+            transition: all 0.3s ease;
+            background: #f8fafc;
         }
 
         .search-box input:focus {
             border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
         }
 
         .controls {
             background: white;
-            padding: 15px 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 15px 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
+            justify-content: center;
         }
 
         .sort-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 12px 20px;
-            border-radius: 10px;
+            padding: 12px 24px;
+            border-radius: 12px;
             cursor: pointer;
             font-weight: 700;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
         .sort-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
 
+        /* ABILITIES GRID */
         .abilities-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 20px;
-            margin-top: 20px;
         }
 
         .ability-card {
             background: white;
-            border-radius: 15px;
-            padding: 20px;
+            border-radius: 20px;
+            padding: 25px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             text-decoration: none;
             color: #333;
-            display: block;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border-left: 5px solid #667eea;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            border-left: 6px solid #667eea;
+            height: 100%;
         }
 
         .ability-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
         }
 
         .ability-name {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 10px;
+            font-size: 1.4rem;
+            font-weight: 800;
+            text-transform: capitalize;
+            margin-bottom: 12px;
             color: #2c3e50;
         }
 
         .ability-description {
-            font-size: 0.9rem;
-            color: #555;
-            line-height: 1.5;
-            margin-bottom: 15px;
+            font-size: 0.95rem;
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            flex-grow: 1;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
-        .pokemon-count {
-            display: inline-block;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 5px 12px;
-            border-radius: 15px;
+        .pokemon-count-badge {
+            align-self: flex-start;
+            background: #f0f4ff;
+            color: #5a67d8;
+            padding: 6px 14px;
+            border-radius: 20px;
             font-size: 0.85rem;
-            font-weight: 600;
+            font-weight: 700;
+            border: 1px solid #e0e7ff;
         }
 
+        /* LOADING SPINNER */
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #e9ecef;
-            border-top-color: #667eea;
+            width: 60px;
+            height: 60px;
+            border: 6px solid rgba(255,255,255,0.3);
+            border-top-color: white;
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 40px auto;
+            animation: spin 1s linear infinite;
+            margin: 100px auto;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         .no-results {
             text-align: center;
             color: white;
             font-size: 1.2rem;
-            margin-top: 40px;
+            background: rgba(255,255,255,0.1);
+            padding: 40px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
         }
 
         @media (max-width: 768px) {
-            .abilities-grid {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-
-            h1 {
-                font-size: 2rem;
-            }
+            .abilities-grid { grid-template-columns: 1fr; }
+            .ability-card { padding: 20px; }
+            .ability-name { font-size: 1.25rem; }
         }
     </style>
 </head>
 <body>
-    <!-- NAVIGATION BAR -->
     <nav class="navbar">
         <div class="nav-container">
             <a href="index.html" class="nav-logo">
                 <span class="logo-icon">🔍</span>
                 <span class="logo-text">PokéSearch</span>
             </a>
-            
             <button class="nav-toggle" id="navToggle" onclick="toggleMenu()">
-                <span></span>
-                <span></span>
-                <span></span>
+                <span></span><span></span><span></span>
             </button>
-            
             <div class="nav-menu" id="navMenu">
-                <a href="index.html" class="nav-link">
-                    <span class="link-icon">🏠</span>
-                    <span>Home</span>
-                </a>
-                <a href="types-list.html" class="nav-link">
-                    <span class="link-icon">⚡</span>
-                    <span>Types</span>
-                </a>
-                <a href="abilities-list.html" class="nav-link active">
-                    <span class="link-icon">💪</span>
-                    <span>Abilities</span>
-                </a>
-                <a class="nav-link disabled">
-                    <span class="link-icon">⭐</span>
-                    <span>Favourites</span>
-                </a>
-                <a class="nav-link disabled">
-                    <span class="link-icon">👥</span>
-                    <span>Team</span>
-                </a>
-                <a class="nav-link disabled">
-                    <span class="link-icon">👤</span>
-                    <span>Profile</span>
-                </a>
+                <a href="index.html" class="nav-link"><span class="link-icon">🏠</span><span>Home</span></a>
+                <a href="types-list.html" class="nav-link"><span class="link-icon">⚡</span><span>Types</span></a>
+                <a href="abilities-list.html" class="nav-link active"><span class="link-icon">💪</span><span>Abilities</span></a>
+                <a class="nav-link disabled"><span class="link-icon">⭐</span><span>Favourites</span></a>
             </div>
         </div>
     </nav>
 
     <div class="container">
-        <h1>💪 All Pokémon Abilities</h1>
+        <h1>💪 All Abilities</h1>
         
         <div class="search-box">
-            <input type="text" id="ability-search" placeholder="🔍 Search abilities by name..." oninput="filterAbilities()">
+            <input type="text" id="ability-search" placeholder="🔍 Search abilities or descriptions..." oninput="filterAbilities()">
         </div>
 
         <div class="controls">
             <button class="sort-btn" onclick="toggleSort()">
-                <span id="sort-text">⬇️ Sort: A-Z</span>
+                <span id="sort-text">⬆️ Sort: A-Z</span>
             </button>
         </div>
 
@@ -240,7 +242,6 @@
         let allAbilities = [];
         let sortAsc = true;
 
-        // API Configuration
         const API_ENDPOINTS = {
             primary: 'http://127.0.0.1:5000',
             fallback: 'https://delila-wakeless-maranda.ngrok-free.dev'
@@ -248,40 +249,17 @@
 
         let currentEndpoint = API_ENDPOINTS.primary;
 
-        async function apiFetch(path, options = {}) {
-            const headers = {
-                ...options.headers,
-                "ngrok-skip-browser-warning": "true"
-            };
-            
+        async function apiFetch(path) {
+            const headers = { "ngrok-skip-browser-warning": "true" };
             try {
-                const response = await fetch(`${currentEndpoint}${path}`, {
-                    ...options,
-                    headers
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
+                const response = await fetch(`${currentEndpoint}${path}`, { headers });
+                if (!response.ok) throw new Error();
                 return response;
             } catch (error) {
                 if (currentEndpoint === API_ENDPOINTS.primary) {
-                    console.warn(`Primary API failed, switching to fallback`);
                     currentEndpoint = API_ENDPOINTS.fallback;
-                    
-                    const response = await fetch(`${currentEndpoint}${path}`, {
-                        ...options,
-                        headers
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    
-                    return response;
+                    return fetch(`${currentEndpoint}${path}`, { headers });
                 }
-                
                 throw error;
             }
         }
@@ -292,10 +270,7 @@
                 allAbilities = await response.json();
                 displayAbilities(allAbilities);
             } catch (error) {
-                console.error('Error loading abilities:', error);
-                document.getElementById('abilities-container').innerHTML = `
-                    <p style="color:white; text-align:center;">Failed to load abilities</p>
-                `;
+                document.getElementById('abilities-container').innerHTML = `<p class="no-results">Failed to connect to API.</p>`;
             }
         }
 
@@ -305,42 +280,41 @@
             filterAbilities();
         }
 
+        function filterAbilities() {
+            const term = document.getElementById('ability-search').value.toLowerCase();
+            const filtered = allAbilities.filter(a => 
+                a.name.toLowerCase().includes(term) || 
+                (a.description && a.description.toLowerCase().includes(term))
+            );
+            displayAbilities(filtered);
+        }
+
         function displayAbilities(abilities) {
             const container = document.getElementById('abilities-container');
             
             if (abilities.length === 0) {
-                container.innerHTML = '<p class="no-results">No abilities found</p>';
+                container.innerHTML = '<p class="no-results">No abilities matching your search.</p>';
                 return;
             }
 
-            // Sort abilities
-            const sorted = [...abilities].sort((a, b) => {
-                const comparison = a.name.localeCompare(b.name);
-                return sortAsc ? comparison : -comparison;
-            });
+            const sorted = [...abilities].sort((a, b) => 
+                sortAsc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name)
+            );
 
             container.innerHTML = `
                 <div class="abilities-grid">
                     ${sorted.map(ability => `
                         <a href="abilitie.html?id=${ability.id}" class="ability-card">
-                            <div class="ability-name">${ability.name}</div>
+                            <div class="ability-name">${ability.name.replace(/-/g, ' ')}</div>
                             <div class="ability-description">
-                                ${ability.description || 'No description available'}
+                                ${ability.description || 'No description available for this ability.'}
                             </div>
-                            <span class="pokemon-count">${ability.pokemon_count} Pokémon</span>
+                            <div class="pokemon-count-badge">
+                                👥 ${ability.pokemon_count} Pokémon
+                            </div>
                         </a>
                     `).join('')}
-                </div>
-            `;
-        }
-
-        function filterAbilities() {
-            const searchTerm = document.getElementById('ability-search').value.toLowerCase();
-            const filtered = allAbilities.filter(ability => 
-                ability.name.toLowerCase().includes(searchTerm) ||
-                (ability.description && ability.description.toLowerCase().includes(searchTerm))
-            );
-            displayAbilities(filtered);
+                </div>`;
         }
 
         document.addEventListener('DOMContentLoaded', loadAbilities);

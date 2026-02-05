@@ -12,6 +12,7 @@ html, body {
 
 body {
     min-height: 100vh;
+    /* Explicitly allow vertical scrolling */
     overflow-y: auto;
 }
 
@@ -176,30 +177,24 @@ body {
         position: fixed;
         top: 0;
         right: 0;
-        transform: translateX(105%); 
+        transform: translateX(105%);
         width: 280px;
         height: 100vh;
         background: white;
         flex-direction: column;
-        gap: 0;
-        padding: 80px 0 25px 0;
-        box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s;
-        z-index: 999;
-        overflow-y: auto;
-        /* FIXED: Hide visibility so the browser doesn't scroll to it */
-        visibility: hidden;
+        padding: 80px 20px;
+        box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 1000;
     }
 
     .nav-menu.active {
         transform: translateX(0);
-        visibility: visible;
     }
 
     .nav-link {
         width: 100%;
-        padding: 18px 30px;
-        border-radius: 0;
-        justify-content: flex-start;
+        padding: 15px 20px;
+        font-size: 1.1rem;
     }
 }

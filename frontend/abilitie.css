@@ -1,7 +1,6 @@
 /* ===================================
-   ABILITY PAGE - ENHANCED STYLES
+   1. Base Reset & Container
    =================================== */
-
 * {
     margin: 0;
     padding: 0;
@@ -12,441 +11,182 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     background-attachment: fixed;
-    padding: 20px;
+    padding: 30px 40px;
     min-height: 100vh;
+    color: #333;
+}
+
+#detail-container {
+    max-width: 1200px;
+    margin: 0 auto;
     animation: fadeIn 0.6s ease-out;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-#ability-container {
-    max-width: 1200px;
-    margin: 0 auto;
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* ===================================
-   BACK BUTTON WITH EMOJI
+   2. Header & Top Info
    =================================== */
-.back-btn {
-    background: white;
-    border: 2px solid #ddd;
-    padding: 12px 24px;
-    border-radius: 12px;
-    cursor: pointer;
-    font-weight: 700;
-    margin-bottom: 20px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    font-size: 1rem;
-    display: inline-block;
-    text-decoration: none;
-    color: #333;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.back-btn::before {
-    content: '⬅️ ';
-    margin-right: 5px;
-}
-
-.back-btn:hover {
-    background: #f8f9fa;
-    border-color: #667eea;
-    transform: translateX(-5px) translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-}
-
-.back-btn:active {
-    transform: translateX(-3px) translateY(0);
-}
-
-/* ===================================
-   ABILITY HEADER
-   =================================== */
-.ability-header {
+.detail-header {
     background: white;
     border-radius: 20px;
     padding: 40px;
     margin-bottom: 25px;
-    border-top: 6px solid #667eea;
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    border-top: 6px solid;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-    animation: slideUp 0.6s ease-out;
+    transition: transform 0.3s ease;
     position: relative;
-    overflow: hidden;
 }
 
-.ability-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 100%;
-    background: linear-gradient(135deg, transparent 0%, rgba(102, 126, 234, 0.05) 100%);
-    pointer-events: none;
+.header-sprite img {
+    width: 200px;
+    height: 200px;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.2));
 }
 
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.ability-header h1 {
-    font-size: clamp(2rem, 5vw, 3.5rem);
+.header-info h1 {
+    font-size: 3.5rem;
     margin: 10px 0 20px 0;
-    color: #667eea;
     text-transform: capitalize;
     font-weight: 800;
-    letter-spacing: -1px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-    position: relative;
-}
-
-.ability-header h1::before {
-    content: '✨ ';
-    font-size: 0.8em;
-}
-
-.ability-description {
-    font-size: clamp(1rem, 2.5vw, 1.2rem);
-    line-height: 1.8;
-    color: #555;
-    margin-top: 20px;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 12px;
-    border-left: 4px solid #667eea;
-}
-
-.pokemon-count {
-    display: inline-block;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    padding: 10px 20px;
-    border-radius: 25px;
-    font-weight: 700;
-    margin-top: 20px;
-    font-size: 0.95rem;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-    transition: all 0.3s ease;
-}
-
-.pokemon-count::before {
-    content: '🎯 ';
-}
-
-.pokemon-count:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
 }
 
 /* ===================================
-   POKEMON SECTION
+   3. Badges
    =================================== */
-.pokemon-section {
-    background: white;
-    border-radius: 20px;
-    padding: clamp(20px, 4vw, 40px);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-    animation: slideUp 0.8s ease-out 0.2s backwards;
-}
-
-.pokemon-section h2 {
-    margin-top: 0;
-    margin-bottom: 30px;
-    color: #2c3e50;
-    font-size: clamp(1.5rem, 3vw, 2rem);
-    border-bottom: 3px solid #f1f3f5;
-    padding-bottom: 15px;
-    font-weight: 700;
-}
-
-.pokemon-section h2::before {
-    content: '🎮 ';
-}
-
-/* ===================================
-   POKEMON GRID
-   =================================== */
-.pokemon-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr));
-    gap: clamp(15px, 3vw, 25px);
-}
-
-.pokemon-card {
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border: 2px solid #e1e8ed;
-    border-radius: 18px;
-    padding: clamp(12px, 2.5vw, 20px);
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    text-decoration: none;
-    color: #333;
-    display: block;
-    position: relative;
-    overflow: hidden;
-}
-
-.pokemon-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, transparent 100%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.pokemon-card:hover {
-    transform: translateY(-10px) scale(1.05);
-    border-color: #667eea;
-    box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
-}
-
-.pokemon-card:hover::before {
-    opacity: 1;
-}
-
-.pokemon-card:active {
-    transform: translateY(-5px) scale(1.02);
-}
-
-.pokemon-card img {
-    width: 100%;
-    max-width: 100px;
-    height: auto;
-    aspect-ratio: 1;
-    object-fit: contain;
-    margin: 0 auto 12px;
-    display: block;
-    transition: transform 0.4s ease;
-    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
-}
-
-.pokemon-card:hover img {
-    transform: scale(1.2) rotate(-8deg);
-    filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.25));
-}
-
-.pokemon-name {
-    font-size: clamp(0.95rem, 2vw, 1.1rem);
-    font-weight: 700;
-    color: #2c3e50;
-    text-transform: capitalize;
-    margin-bottom: 8px;
-    letter-spacing: 0.3px;
-}
-
-.pokemon-id {
-    font-size: clamp(0.75rem, 1.5vw, 0.85rem);
-    color: #95a5a6;
-    font-weight: 600;
-    margin-bottom: 8px;
-}
-
-.pokemon-id::before {
-    content: '🔢 ';
-    font-size: 0.85em;
-}
-
-/* ===================================
-   TYPE BADGES
-   =================================== */
-.type-badges {
-    display: flex;
-    gap: 6px;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-top: 10px;
-}
+.types { display: flex; gap: 12px; }
 
 .type-badge {
-    padding: 6px 12px;
-    border-radius: 12px;
+    padding: 10px 24px;
+    border-radius: 25px;
     color: white;
     font-weight: 700;
     text-transform: uppercase;
-    font-size: clamp(0.65rem, 1.5vw, 0.75rem);
-    letter-spacing: 0.5px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
-.type-badge:hover {
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+.ability-badge {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-weight: 700;
+    display: inline-block;
+    margin: 5px;
+    text-decoration: none;
+    cursor: pointer;
 }
 
-/* Type colors */
-.type-normal { background: #A8A878; }
-.type-fire { background: #F08030; }
-.type-water { background: #6890F0; }
-.type-electric { background: #F8D030; color: #333; }
-.type-grass { background: #78C850; }
-.type-ice { background: #98D8D8; }
-.type-fighting { background: #C03028; }
-.type-poison { background: #A040A0; }
-.type-ground { background: #E0C068; }
-.type-flying { background: #A890F0; }
-.type-psychic { background: #F85888; }
-.type-bug { background: #A8B820; }
-.type-rock { background: #B8A038; }
-.type-ghost { background: #705898; }
-.type-dragon { background: #7038F8; }
-.type-dark { background: #705848; }
-.type-steel { background: #B8B8D0; }
-.type-fairy { background: #EE99AC; }
+.abilities-list { display: flex; flex-wrap: wrap; gap: 8px; }
 
 /* ===================================
-   LOADING SPINNER
+   4. TOOLTIP FIXED (ACCURATE)
    =================================== */
-.spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid #e9ecef;
-    border-top-color: #667eea;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 40px auto;
+.ability-tooltip {
+    position: absolute;
+    top: 0; /* JS will move this via transform */
+    left: 0;
+    background: #2c3e50;
+    color: white;
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    max-width: 280px;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.2);
+    /* Transition only opacity to prevent jumping */
+    transition: opacity 0.15s ease-out;
+    /* Improves render performance for JS movement */
+    will-change: transform; 
 }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
+.ability-tooltip.show {
+    opacity: 1;
+}
+
+/* Tooltip Arrow */
+.ability-tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    margin-left: -8px;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid #2c3e50;
 }
 
 /* ===================================
-   RESPONSIVE DESIGN
+   5. Cards & Content
    =================================== */
-@media (max-width: 1024px) {
-    .pokemon-grid {
-        grid-template-columns: repeat(auto-fill, minmax(min(140px, 100%), 1fr));
-    }
+.detail-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+
+.info-card {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
 }
+
+.info-card.full-width { grid-column: 1 / -1; }
+
+.info-card h2 { margin-bottom: 20px; font-size: 1.5rem; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+
+.info-grid { display: grid; gap: 12px; }
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+/* ===================================
+   6. Stats
+   =================================== */
+.stat-row { display: grid; grid-template-columns: 80px 50px 1fr; align-items: center; gap: 15px; padding: 5px 0; }
+.stat-bar { background: #e9ecef; height: 12px; border-radius: 10px; overflow: hidden; }
+.stat-fill { height: 100%; transition: width 1s ease; border-radius: 10px; }
+
+/* ===================================
+   7. Evolution
+   =================================== */
+.evolution-tree { padding: 20px; background: #fdfdfd; border-radius: 15px; border: 1px solid #eee; }
+.evo-linear, .evo-stage { display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; }
+.evo-node { text-align: center; padding: 15px; }
+.evo-node img { width: 90px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); cursor: pointer; }
+.evo-name { font-weight: 700; text-transform: capitalize; margin-top: 5px; }
+.requirement { font-size: 0.7rem; background: #fff3cd; padding: 4px 10px; border-radius: 10px; color: #856404; }
+.arrow { font-size: 1.5rem; color: #ccc; }
+
+/* ===================================
+   8. Type Colors
+   =================================== */
+.type-grass { background-color: #78C850; } .type-fire { background-color: #F08030; }
+.type-water { background-color: #6890F0; } .type-bug { background-color: #A8B820; }
+.type-normal { background-color: #A8A878; } .type-poison { background-color: #A040A0; }
+.type-electric { background-color: #F8D030; color: #333; } .type-ground { background-color: #E0C068; }
+.type-fairy { background-color: #EE99AC; } .type-fighting { background-color: #C03028; }
+.type-psychic { background-color: #F85888; } .type-rock { background-color: #B8A038; }
+.type-ghost { background-color: #705898; } .type-ice { background-color: #98D8D8; }
+.type-dragon { background-color: #7038F8; } .type-flying { background-color: #A890F0; }
+.type-steel { background-color: #B8B8D0; } .type-dark { background-color: #705848; }
 
 @media (max-width: 768px) {
-    body {
-        padding: 15px;
-    }
-
-    .ability-header {
-        padding: 25px;
-    }
-
-    .ability-header h1 {
-        font-size: 2rem;
-    }
-
-    .pokemon-grid {
-        grid-template-columns: repeat(auto-fill, minmax(min(130px, 45%), 1fr));
-        gap: 15px;
-    }
-
-    .pokemon-card {
-        padding: 15px;
-    }
-
-    .pokemon-card img {
-        max-width: 80px;
-    }
-}
-
-@media (max-width: 480px) {
-    body {
-        padding: 10px;
-    }
-
-    .ability-header {
-        padding: 20px;
-    }
-
-    .pokemon-section {
-        padding: 20px;
-    }
-
-    .pokemon-grid {
-        grid-template-columns: repeat(auto-fill, minmax(min(110px, 45%), 1fr));
-        gap: 12px;
-    }
-
-    .pokemon-card {
-        padding: 12px;
-    }
-
-    .pokemon-card img {
-        max-width: 70px;
-    }
-
-    .back-btn {
-        padding: 10px 18px;
-        font-size: 0.9rem;
-    }
-}
-
-/* ===================================
-   TOUCH DEVICE OPTIMIZATIONS
-   =================================== */
-@media (hover: none) and (pointer: coarse) {
-    .pokemon-card:hover {
-        transform: none;
-    }
-
-    .pokemon-card:active {
-        transform: scale(0.95);
-        transition: transform 0.1s ease;
-    }
-
-    .back-btn:hover {
-        transform: none;
-    }
-
-    .back-btn:active {
-        transform: scale(0.95);
-    }
-}
-
-/* ===================================
-   REDUCED MOTION
-   =================================== */
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-}
-
-/* ===================================
-   PRINT STYLES
-   =================================== */
-@media print {
-    body {
-        background: white;
-    }
-
-    .back-btn,
-    .navbar {
-        display: none;
-    }
-
-    .pokemon-card {
-        break-inside: avoid;
-    }
+    .detail-header { flex-direction: column; text-align: center; }
+    .header-sprite img { width: 150px; }
 }
