@@ -14,17 +14,21 @@ const API_ENDPOINTS = {
 
 let currentEndpoint = API_ENDPOINTS.primary;
 
-// 2. API Fetch
+// 2. API Fetch with proper async fallback handling
 async function apiFetch(path, options = {}) {
     const headers = { ...options.headers, "ngrok-skip-browser-warning": "true" };
     try {
         const response = await fetch(`${currentEndpoint}${path}`, { ...options, headers });
-        if (!response.ok) throw new Error(`HTTP error!`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         return response;
     } catch (error) {
         if (currentEndpoint === API_ENDPOINTS.primary) {
+            console.warn("Primary API failed, switching to fallback...");
             currentEndpoint = API_ENDPOINTS.fallback;
-            return await fetch(`${currentEndpoint}${path}`, { ...options, headers });
+            // Await the second attempt
+            const response = await fetch(`${currentEndpoint}${path}`, { ...options, headers });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return response;
         }
         throw error;
     }
@@ -41,7 +45,8 @@ async function loadPokemonDetails() {
         const p = await res.json();
         renderDetails(p);
     } catch (err) {
-        container.innerHTML = `<p style="color:white;text-align:center;">Error loading data.</p>`;
+        console.error("Load failed:", err);
+        container.innerHTML = `<p style="color:white;text-align:center;">Error loading data from API.</p>`;
     }
 }
 
@@ -54,7 +59,7 @@ function renderDetails(p) {
     document.getElementById('detail-container').innerHTML = `
         <div class="detail-header" style="border-top-color: ${color};">
             <div class="header-sprite">
-                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${p.id}.png">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${p.id}.png" alt="${p.name}">
             </div>
             <div class="header-info">
                 <div class="pokemon-id">#${String(p.id).padStart(3, '0')}</div>
@@ -94,7 +99,7 @@ function renderDetails(p) {
                 </div>
             </div>
             
-            ${renderEvolution(p, color)}
+            ${renderEvolutionSection(p, color)}
         </div>
     `;
 
@@ -104,7 +109,7 @@ function renderDetails(p) {
     }, 100);
 }
 
-// 5. TOOLTIP LOGIC (FIXED)
+// 5. TOOLTIP LOGIC (FIXED POSITIONING)
 function initTooltips() {
     const badges = document.querySelectorAll('.clickable-ability');
     
@@ -119,19 +124,14 @@ function initTooltips() {
             tooltip.textContent = badge.dataset.desc;
             document.body.appendChild(tooltip);
 
-            // Step 1: Ensure it's in the DOM
             setTimeout(() => {
-                // Step 2: Accurate measurement
                 requestAnimationFrame(() => {
                     const bRect = badge.getBoundingClientRect();
                     const tRect = tooltip.getBoundingClientRect();
                     
-                    // Center X
                     const x = bRect.left + (bRect.width / 2) - (tRect.width / 2);
-                    // Position Y (exactly 12px above badge)
                     const y = bRect.top + window.scrollY - tRect.height - 12;
 
-                    // Use transform for hardware-accelerated, exact positioning
                     tooltip.style.transform = `translate3d(${x}px, ${y}px, 0)`;
                     tooltip.classList.add('show');
                 });
@@ -156,27 +156,46 @@ function createStatRow(label, val, max, color) {
     </div>`;
 }
 
-function renderEvolution(p, color) {
+// 6. EVOLUTION LOGIC (HANDLES BRANCHES)
+function renderEvolutionSection(p, color) {
     if (!p.evolution_chain) return '';
-    const chain = flattenChain(p.evolution_chain);
-    return `<div class="info-card full-width">
-        <h2>🔄 Evolution</h2>
-        <div class="evo-linear">
-            ${chain.map((poke, i) => `
-                <div class="evo-node ${poke.id == p.id ? 'current' : ''}" onclick="window.location.href='details.html?id=${poke.id}'">
-                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${poke.id}.png">
-                    <div class="evo-name">${poke.name}</div>
-                </div>
-                ${i < chain.length - 1 ? '<div class="arrow">→</div>' : ''}
-            `).join('')}
-        </div>
-    </div>`;
+    return `
+        <div class="info-card full-width">
+            <h2>🔄 Evolution</h2>
+            <div class="evolution-tree">
+                ${renderEvolutionBranch(p.evolution_chain, p.id, color)}
+            </div>
+        </div>`;
 }
 
-function flattenChain(node, arr = []) {
-    arr.push(node);
-    if (node.evolutions && node.evolutions[0]) flattenChain(node.evolutions[0], arr);
-    return arr;
+function renderEvolutionBranch(node, currentId, color) {
+    const isCurrent = node.id == currentId;
+    let html = `<div class="evo-stage">
+        <div class="evo-node ${isCurrent ? 'current' : ''}" 
+             onclick="window.location.href='details.html?id=${node.id}'"
+             style="${isCurrent ? `border-color:${color}` : ''}">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${node.id}.png" width="80">
+            <div class="evo-name">${node.name}</div>
+        </div>`;
+
+    if (node.evolutions && node.evolutions.length > 0) {
+        if (node.evolutions.length > 1) {
+            // Branched (like Eevee)
+            html += `<div class="arrow">→</div><div class="evo-branches">`;
+            node.evolutions.forEach(evo => {
+                html += `<div class="evo-branch">
+                    <div class="requirement">${evo.requirement || 'Special'}</div>
+                    ${renderEvolutionBranch(evo, currentId, color)}
+                </div>`;
+            });
+            html += `</div>`;
+        } else {
+            // Linear
+            html += `<div class="arrow">→</div>`;
+            html += renderEvolutionBranch(node.evolutions[0], currentId, color);
+        }
+    }
+    return html + `</div>`;
 }
 
 document.addEventListener('DOMContentLoaded', loadPokemonDetails);

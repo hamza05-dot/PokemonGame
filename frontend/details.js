@@ -140,28 +140,6 @@ function renderAbilities(abilities, abilities_data) {
             ${a.name.replace(/-/g, ' ')}
         </a>`).join('');
 }
-
-function initAbilityTooltips() {
-    const abilities = document.querySelectorAll('.clickable-ability');
-    abilities.forEach(ability => {
-        ability.addEventListener('mouseenter', (e) => {
-            const tooltip = document.createElement('div');
-            tooltip.className = 'ability-tooltip';
-            tooltip.textContent = ability.getAttribute('data-description');
-            tooltip.id = 'active-tooltip';
-            document.body.appendChild(tooltip);
-            const rect = ability.getBoundingClientRect();
-            tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
-            tooltip.style.top = rect.top - tooltip.offsetHeight - 10 + window.scrollY + 'px';
-            setTimeout(() => tooltip.classList.add('show'), 10);
-        });
-        ability.addEventListener('mouseleave', () => {
-            const tooltip = document.getElementById('active-tooltip');
-            if (tooltip) { tooltip.classList.remove('show'); setTimeout(() => tooltip.remove(), 200); }
-        });
-    });
-}
-
 // 6. Stats & Effectiveness
 function createStatRow(label, val, max, color, isBold = false) {
     const pct = Math.min(((val || 0) / max) * 100, 100);
