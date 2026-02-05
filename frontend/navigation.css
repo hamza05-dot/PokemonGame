@@ -2,10 +2,13 @@
    GLOBAL OVERFLOW FIXES
    =================================== */
 html, body {
-    max-width: 100%;
-    overflow-x: hidden; /* Prevents side-scrolling to see the hidden menu */
+    max-width: 100vw;
+    overflow-x: hidden; /* Standard hide */
     margin: 0;
     padding: 0;
+    position: relative;
+    /* This stops the "finger slide" without freezing the scroll */
+    contain: paint; 
 }
 
 /* ===================================
@@ -148,37 +151,9 @@ html, body {
     overflow: hidden;
 }
 
-.nav-link::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    z-index: -1;
-}
-
-.nav-link:hover {
-    transform: translateY(-2px);
-    color: #333;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.nav-link:hover::before {
-    opacity: 0.1;
-}
-
 .nav-link.active {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
-}
-
-.nav-link.active::before {
-    opacity: 1;
 }
 
 /* ===================================
@@ -197,9 +172,8 @@ html, body {
         position: fixed;
         top: 0;
         right: 0;
-        /* Using visibility and transform instead of right: -100% prevents layout stretching */
-        transform: translateX(100%); 
-        visibility: hidden;
+        /* Using transform ensures the menu doesn't take up space when closed */
+        transform: translateX(105%); 
         width: 280px;
         height: 100vh;
         background: white;
@@ -207,13 +181,12 @@ html, body {
         gap: 0;
         padding: 80px 0 25px 0;
         box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s;
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         z-index: 999;
     }
 
     .nav-menu.active {
         transform: translateX(0);
-        visibility: visible;
     }
 
     .nav-link {
