@@ -1,14 +1,25 @@
 /* ===================================
    GLOBAL OVERFLOW FIXES
    =================================== */
-html, body {
-    max-width: 100vw;
-    overflow-x: hidden; /* Standard hide */
+html {
+    /* Keeping it simple: let the browser handle the primary scrollbar */
+    scroll-behavior: smooth;
+}
+
+body {
     margin: 0;
     padding: 0;
+    width: 100%;
+    min-height: 100vh;
+    /* This ensures content is visible and scrollable */
+    overflow-x: hidden; 
+    overflow-y: visible; 
     position: relative;
-    /* This stops the "finger slide" without freezing the scroll */
-    contain: paint; 
+}
+
+/* Prevent scrolling only when mobile menu is active */
+body.menu-open {
+    overflow: hidden;
 }
 
 /* ===================================
@@ -172,7 +183,6 @@ html, body {
         position: fixed;
         top: 0;
         right: 0;
-        /* Using transform ensures the menu doesn't take up space when closed */
         transform: translateX(105%); 
         width: 280px;
         height: 100vh;
@@ -183,6 +193,7 @@ html, body {
         box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
         transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         z-index: 999;
+        overflow-y: auto;
     }
 
     .nav-menu.active {

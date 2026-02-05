@@ -10,6 +10,8 @@ function toggleMenu() {
     if (navToggle && navMenu) {
         navToggle.classList.toggle('active');
         navMenu.classList.toggle('active');
+        // Prevent body scroll when menu is open
+        document.body.classList.toggle('menu-open');
     }
 }
 
@@ -27,6 +29,7 @@ document.addEventListener('click', function(event) {
     if (!isClickInsideNav && isMenuOpen) {
         navToggle.classList.remove('active');
         navMenu.classList.remove('active');
+        document.body.classList.remove('menu-open');
     }
 });
 
@@ -41,6 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const navMenu = document.getElementById('navMenu');
                 navToggle?.classList.remove('active');
                 navMenu?.classList.remove('active');
+                document.body.classList.remove('menu-open');
             }
         });
     });
@@ -53,5 +57,6 @@ window.addEventListener('resize', function() {
         const navMenu = document.getElementById('navMenu');
         navToggle?.classList.remove('active');
         navMenu?.classList.remove('active');
+        document.body.classList.remove('menu-open');
     }
 });

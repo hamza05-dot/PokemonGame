@@ -24,7 +24,7 @@
 
 html {
     -webkit-text-size-adjust: 100%;
-    overscroll-behavior: none;
+    /* FIXED: Removed overscroll-behavior: none as it blocks vertical scrolling */
     overflow-x: hidden;
     scroll-behavior: smooth;
 }
@@ -36,7 +36,8 @@ body {
     min-height: 100vh;
     margin: 0;
     padding: 0;
-    overscroll-behavior: none;
+    /* FIXED: Removed overscroll-behavior: none */
+    overflow-x: hidden;
     animation: fadeIn 0.6s ease-out;
 }
 
@@ -442,7 +443,6 @@ input::placeholder {
     z-index: 1000;
     padding: clamp(15px, 3vw, 25px);
     animation: fadeInModal 0.3s ease;
-    overscroll-behavior: contain;
 }
 
 @keyframes fadeInModal {
@@ -463,7 +463,6 @@ input::placeholder {
     -webkit-overflow-scrolling: touch;
     box-shadow: 0 24px 64px rgba(0,0,0,0.3);
     animation: slideUpModal 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    overscroll-behavior: contain;
 }
 
 @keyframes slideUpModal {
@@ -618,56 +617,6 @@ input::placeholder {
 }
 
 /* ===================================
-   TOUCH DEVICE OPTIMIZATIONS
-   =================================== */
-@media (hover: none) and (pointer: coarse) {
-    .pokemon-card:hover {
-        transform: none;
-    }
-
-    .pokemon-card:active {
-        transform: scale(0.98);
-        transition: transform 0.1s ease;
-    }
-
-    .type-badge:hover {
-        transform: none;
-    }
-
-    input:focus,
-    select:focus {
-        transform: none;
-    }
-
-    .sort-order-btn:hover,
-    .clear-btn:hover,
-    .advanced-toggle:hover,
-    .name-advanced-toggle:hover {
-        transform: none;
-    }
-
-    .sort-order-btn:active,
-    .clear-btn:active,
-    .advanced-toggle:active,
-    .name-advanced-toggle:active {
-        transform: scale(0.95);
-    }
-}
-
-/* ===================================
-   REDUCED MOTION
-   =================================== */
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-}
-
-/* ===================================
    SCROLLBAR STYLING
    =================================== */
 ::-webkit-scrollbar {
@@ -686,24 +635,4 @@ input::placeholder {
 
 ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-red) 100%);
-}
-
-/* ===================================
-   PRINT STYLES
-   =================================== */
-@media print {
-    body {
-        background: white;
-    }
-
-    .search-card,
-    #pokeModal,
-    .navbar {
-        display: none !important;
-    }
-
-    .pokemon-card {
-        break-inside: avoid;
-        border: 1px solid #ddd;
-    }
 }
