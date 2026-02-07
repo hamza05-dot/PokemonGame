@@ -88,11 +88,12 @@ function renderAbility(data) {
     
     const pokemonCardsHTML = data.pokemon.map(p => {
         const img = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${p.id}.png`;
+        const imgFallback = `./images/${p.id}.png`;
         const idFormatted = String(p.id).padStart(3, '0');
         
         return `
             <a href="details.html?id=${p.id}" class="pokemon-card">
-                <img src="${img}" alt="${p.name}" loading="lazy">
+                <img src="${img}" alt="${p.name}" loading="lazy" onerror="this.onerror=null; this.src='${imgFallback}';">
                 <div class="pokemon-id">#${idFormatted}</div>
                 <div class="pokemon-name">${p.name}</div>
                 <div class="type-badges">

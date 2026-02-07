@@ -246,11 +246,12 @@ function renderResults(list) {
     results.innerHTML = list.map(p => {
         const color = typeColors[p.type1]
         const img = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${p.id}.png`
+        const imgFallback = `./images/${p.id}.png`
         const idFormatted = String(p.id).padStart(3, '0')
         
         return `
         <li class="pokemon-card" style="border-bottom-color:${color}" onclick="openModal(${p.id})">
-            <img src="${img}" alt="${p.name}" loading="lazy">
+            <img src="${img}" alt="${p.name}" loading="lazy" onerror="this.onerror=null; this.src='${imgFallback}';">
             <div style="flex:1;">
                 <div style="font-size:0.8rem; color:#999; font-weight:600;">#${idFormatted}</div>
                 <strong style="text-transform:capitalize;">${p.name}</strong>
@@ -283,6 +284,7 @@ async function openModal(id) {
         const region = generationToRegion[p.generation] || "Unknown"
         
         const img = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${p.id}.png`
+        const imgFallback = `./images/${p.id}.png`
         const idFormatted = String(p.id).padStart(3, '0')
         
         modalBody.innerHTML = `
@@ -292,7 +294,7 @@ async function openModal(id) {
                 <div style="font-size: 0.9rem; color: #95a5a6; font-weight: 700; margin-bottom: 4px;">#${idFormatted}</div>
                 <h2 style="font-size: 1.6rem; font-weight: 900; color: #2c3e50; text-transform: capitalize; margin-bottom: 12px;">${p.name}</h2>
                 
-                <img src="${img}" alt="${p.name}" style="width: 140px; height: 140px; object-fit: contain; margin: 10px auto; display: block;">
+                <img src="${img}" alt="${p.name}" style="width: 140px; height: 140px; object-fit: contain; margin: 10px auto; display: block;" onerror="this.onerror=null; this.src='${imgFallback}';">
                 
                 <div style="display: flex; justify-content: center; gap: 8px; margin: 12px 0;">
                     <a href="type.html?name=${p.type1.toLowerCase()}" class="type-badge" style="background:${typeColors[p.type1.toLowerCase()]}; font-size: 0.7rem; padding: 5px 12px; text-decoration: none; color: white; cursor: pointer;">${p.type1}</a>

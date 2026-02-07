@@ -68,7 +68,7 @@ function renderDetails(p) {
     document.getElementById('detail-container').innerHTML = `
         <div class="detail-header" style="border-top-color: ${color};">
             <div class="header-sprite">
-                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${p.id}.png" alt="${p.name}">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${p.id}.png" alt="${p.name}" onerror="this.onerror=null; this.src='./images/${p.id}.png';">
             </div>
             <div class="header-info">
                 <div class="pokemon-id">#${String(p.id).padStart(3, '0')}</div>
@@ -208,7 +208,7 @@ function renderLinearEvolution(chain, currentId, color) {
                 <div class="evo-node clickable ${isCurrent ? 'current' : ''}" 
                      onclick="window.location.href='details.html?id=${poke.id}'"
                      style="${isCurrent ? `border-color:${color}; box-shadow: 0 0 15px ${color}66;` : ''}">
-                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${poke.id}.png" width="80">
+                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${poke.id}.png" width="80" onerror="this.onerror=null; this.src='./images/${poke.id}.png';">
                     <div class="evo-name">${poke.name}</div>
                 </div>`;
             
@@ -227,7 +227,7 @@ function renderBranchedEvolution(node, currentId, color) {
         <div class="evo-node clickable ${isCurrent ? 'current' : ''}" 
              onclick="window.location.href='details.html?id=${node.id}'"
              style="${isCurrent ? `border-color:${color}; box-shadow: 0 0 15px ${color}66;` : ''}">
-            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${node.id}.png" width="80">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${node.id}.png" width="80" onerror="this.onerror=null; this.src='./images/${node.id}.png';">
             <div class="evo-name">${node.name}</div>
         </div>`;
 
@@ -252,7 +252,7 @@ function renderSimpleNode(node, currentId, color) {
     return `<div class="evo-node clickable ${isCurrent ? 'current' : ''}" 
              onclick="window.location.href='details.html?id=${node.id}'"
              style="${isCurrent ? `border-color:${color}` : ''}">
-            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${node.id}.png" width="80">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${node.id}.png" width="80" onerror="this.onerror=null; this.src='./images/${node.id}.png';">
             <div class="evo-name">${node.name}</div>
         </div>`;
 }
