@@ -238,9 +238,8 @@
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/yourusername/pokemon-search.git
-cd pokemon-search
-
+git clone https://github.com/hamza05-dot/PokemonGame.git
+cd PokemonGame
 # 2. Start all services
 docker-compose up -d
 
@@ -1243,6 +1242,7 @@ This project is licensed under the MIT License.
 ### Project Links
 
 🌐 **Live Demo:** https://hamza05-dot.github.io/PokemonGame/frontend/index
+
 📁 **Repository:** https://github.com/hamza05-dot/PokemonGame  
 🐛 **Issues:** https://github.com/hamza05-dot/PokemonGame/issues  
 
