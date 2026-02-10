@@ -1,0 +1,16 @@
+# Create the file
+New-Item -Path "backend\.dockerignore" -ItemType File -Force
+
+# Add content
+@"
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.env
+.git/
+.gitignore
+*.log
+"@ | Set-Content -Path "backend\.dockerignore"

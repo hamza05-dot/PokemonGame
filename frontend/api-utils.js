@@ -8,7 +8,7 @@ const typeColors = {
 };
 
 const API_ENDPOINTS = {
-    primary: 'http://127.0.0.1:5000',
+    primary: 'http://localhost:5000',
     fallback: 'https://delila-wakeless-maranda.ngrok-free.dev'
 };
 

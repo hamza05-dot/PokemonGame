@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # Oracle Database Container
+  oracle-db:
+    image: wnameless/oracle-xe-11g-r2
+    container_name: pokemon_oracle_db
+    ports:
+      - "1522:1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+    networks:
+      - pokemon-network
+
+  # Backend (Flask API)
+  backend:
+    build: ./backend
+    container_name: pokemon_backend
+    depends_on:
+      - oracle-db
+    environment:
+      - DB_HOST=oracle-db
+      - DB_PORT=1521
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_SID=${DB_SID}
+    ports:
+      - "5000:5000"
+    networks:
+      - pokemon-network
+    restart: unless-stopped
+    command: >
+      sh -c "sleep 30 && python -m flask run --host=0.0.0.0 --port=5000"
+
+  # Frontend (Nginx)
+  frontend:
+    build: ./frontend
+    container_name: pokemon_frontend
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - pokemon-network
+    restart: unless-stopped
+
+volumes:
+  oracle-data:
+    driver: local
+
+networks:
+  pokemon-network:
+    driver: bridge

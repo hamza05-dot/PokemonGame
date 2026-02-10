@@ -1,0 +1,20 @@
+```
+
+---
+
+## 📁 **FILE 6: `.dockerignore`** (Root directory)
+
+**Location:** `C:\Users\lenocvo m\Documents\PokemonGame\.dockerignore`
+```
+.git/
+.gitignore
+*.md
+.env
+venv/
+__pycache__/
+*.pyc
+node_modules/
+.vscode/
+.idea/
+*.log
+C:\PokemonBackup/

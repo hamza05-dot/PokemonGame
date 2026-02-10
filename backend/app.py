@@ -2,44 +2,43 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 import oracledb
 import json
+import os
 
 app = Flask(__name__)
 app.json.sort_keys = False
 CORS(app)
 
 # ========================
-# INITIALIZE THICK MODE FOR ORACLE 11g
+# ENABLE THICK MODE FOR ORACLE 11g
 # ========================
 try:
-    # Si vous avez déjà Oracle 11g XE installé, le client est probablement ici :
-    oracledb.init_oracle_client(lib_dir=r"C:\oraclexe\app\oracle\product\11.2.0\server\bin")
-    print("✓ Oracle Client initialized in THICK mode")
+    # Initialize thick mode with explicit path (required for Oracle 11g)
+    oracledb.init_oracle_client(lib_dir="/opt/oracle/instantclient_23_4")
+    print("✓ Oracle Client initialized in THICK mode (Oracle 11g compatible)")
 except Exception as e:
-    print(f"⚠ Trying without explicit lib_dir...")
-    try:
-        oracledb.init_oracle_client()
-        print("✓ Oracle Client initialized (found automatically)")
-    except Exception as e2:
-        print(f"✗ Error: {e2}")
+    print(f"⚠ Could not initialize thick mode: {e}")
+    print("⚠ Continuing with thin mode (may fail with Oracle 11g)")
 
 # ========================
-# DATABASE CONFIGURATION
+# DATABASE CONFIGURATION (Docker-ready)
 # ========================
 DB_CONFIG = {
-    "user": "pokedb",
-    "password": "5687",
-    "dsn": "127.0.0.1:1521/xe"
+    "user": os.getenv("DB_USER", "pokedb"),
+    "password": os.getenv("DB_PASSWORD", "5687"),
+    "dsn": f"{os.getenv('DB_HOST', '127.0.0.1')}:{os.getenv('DB_PORT', '1521')}/{os.getenv('DB_SID', 'XE')}"
 }
+
+print(f"🔗 Connecting to Oracle: {DB_CONFIG['dsn']} as {DB_CONFIG['user']}")
 
 def get_connection():
     try:
         return oracledb.connect(**DB_CONFIG)
     except Exception as e:
-        print(f"Connection Error: {e}")
+        print(f"❌ Connection Error: {e}")
         return None
 
 # ========================
-# 1. API: GET ALL POKEMON (Keep existing for list page)
+# 1. API: GET ALL POKEMON
 # ========================
 @app.route("/api/pokemon")
 def get_all_pokemon():
@@ -56,7 +55,7 @@ def get_all_pokemon():
         for row in cur:
             data = dict(zip(columns, row))
 
-            # Handle JSON field for the list view
+            # Handle JSON field
             if data.get('evo_data_json'):
                 try:
                     content = data['evo_data_json'].read() if hasattr(data['evo_data_json'], 'read') else data['evo_data_json']
@@ -79,7 +78,7 @@ def get_all_pokemon():
         conn.close()
 
 # ========================
-# 2. API: GET POKEMON DETAILS (COMPLETE WITH TYPE EFFECTIVENESS)
+# 2. API: GET POKEMON DETAILS
 # ========================
 @app.route("/api/pokemon/<int:poke_id>")
 def get_pokemon_details(poke_id):
@@ -89,7 +88,6 @@ def get_pokemon_details(poke_id):
 
     cur = conn.cursor()
     try:
-        # --- GET BASIC POKEMON INFO FROM VIEW (it already has everything!) ---
         cur.execute("""
             SELECT 
                 id, name, description, hp, attack, defense,
@@ -107,14 +105,12 @@ def get_pokemon_details(poke_id):
         columns = [col[0].lower() for col in cur.description]
         pokemon_data = dict(zip(columns, row))
 
-        # --- GET REGION BASED ON GENERATION ---
         region_map = {
             1: "Kanto", 2: "Johto", 3: "Hoenn", 4: "Sinnoh",
             5: "Unova", 6: "Kalos", 7: "Alola", 8: "Galar", 9: "Paldea"
         }
         pokemon_data['region'] = region_map.get(pokemon_data.get('generation'), "Unknown")
 
-        # --- GET ABILITIES WITH FULL DATA (ID, NAME, DESCRIPTION) ---
         cur.execute("""
             SELECT a.id, a.name, a.description
             FROM abilities a
@@ -133,12 +129,10 @@ def get_pokemon_details(poke_id):
         
         pokemon_data['abilities_data'] = abilities_data
 
-        # --- GET TYPE EFFECTIVENESS ---
         type1 = pokemon_data.get('type1')
         type2 = pokemon_data.get('type2')
         pokemon_data['type_effectiveness'] = calculate_type_effectiveness(cur, type1, type2)
 
-        # --- GET COMPLETE EVOLUTION CHAIN ---
         evolution_chain = get_complete_evolution_chain(cur, poke_id)
         pokemon_data['evolution_chain'] = evolution_chain
 
@@ -157,12 +151,6 @@ def get_pokemon_details(poke_id):
 # HELPER: CALCULATE TYPE EFFECTIVENESS
 # ========================
 def calculate_type_effectiveness(cur, type1, type2=None):
-    """
-    Calculate type effectiveness for a Pokemon's type combination.
-    Returns defensive and offensive matchups.
-    """
-    
-    # Get type IDs
     cur.execute("SELECT id FROM types WHERE LOWER(name) = LOWER(:type1)", {"type1": type1})
     type1_row = cur.fetchone()
     if not type1_row:
@@ -176,17 +164,14 @@ def calculate_type_effectiveness(cur, type1, type2=None):
         if type2_row:
             type2_id = type2_row[0]
     
-    # Calculate DEFENSIVE effectiveness (what damages this Pokemon)
     defensive = {}
     
-    # Get all attacking types
     cur.execute("SELECT id, name FROM types ORDER BY name")
     all_types = cur.fetchall()
     
     for attack_type_id, attack_type_name in all_types:
         multiplier = 1.0
         
-        # Check multiplier against type1
         cur.execute("""
             SELECT multiplier 
             FROM type_effectiveness 
@@ -194,10 +179,8 @@ def calculate_type_effectiveness(cur, type1, type2=None):
         """, {"atk": attack_type_id, "def": type1_id})
         result = cur.fetchone()
         if result:
-            # Convert to float to handle Oracle decimal format
             multiplier *= float(result[0]) if result[0] is not None else 1.0
         
-        # Check multiplier against type2 if exists
         if type2_id:
             cur.execute("""
                 SELECT multiplier 
@@ -206,32 +189,26 @@ def calculate_type_effectiveness(cur, type1, type2=None):
             """, {"atk": attack_type_id, "def": type2_id})
             result = cur.fetchone()
             if result:
-                # Convert to float to handle Oracle decimal format
                 multiplier *= float(result[0]) if result[0] is not None else 1.0
         
         defensive[attack_type_name.lower()] = multiplier
     
-    # Calculate OFFENSIVE effectiveness (what this Pokemon damages)
     offensive = {}
     
     for defense_type_id, defense_type_name in all_types:
-        # Use type1 for offensive calculations (primary type)
         cur.execute("""
             SELECT multiplier 
             FROM type_effectiveness 
             WHERE attack_type_id = :atk AND defense_type_id = :def
         """, {"atk": type1_id, "def": defense_type_id})
         result = cur.fetchone()
-        # Convert to float to handle Oracle decimal format
         multiplier = float(result[0]) if result and result[0] is not None else 1.0
         offensive[defense_type_name.lower()] = multiplier
     
-    # Categorize defensive matchups
     weak_to = [t for t, m in defensive.items() if m > 1]
     resistant_to = [t for t, m in defensive.items() if 0 < m < 1]
     immune_to = [t for t, m in defensive.items() if m == 0]
     
-    # Categorize offensive matchups
     super_effective = [t for t, m in offensive.items() if m > 1]
     not_very_effective = [t for t, m in offensive.items() if 0 < m < 1]
     no_effect = [t for t, m in offensive.items() if m == 0]
@@ -255,23 +232,11 @@ def calculate_type_effectiveness(cur, type1, type2=None):
 # HELPER: BUILD COMPLETE EVOLUTION CHAIN
 # ========================
 def get_complete_evolution_chain(cur, pokemon_id):
-    """
-    Build the COMPLETE evolution chain from first form to all final forms.
-    Returns a tree structure with evolution requirements.
-    """
-    
-    # Step 1: Find the ROOT (first pokemon in the chain)
     root_id = find_evolution_root(cur, pokemon_id)
-    
-    # Step 2: Build the complete tree starting from root
     chain = build_evolution_tree(cur, root_id, pokemon_id)
-    
     return chain
 
 def find_evolution_root(cur, pokemon_id):
-    """
-    Recursively find the first pokemon in the evolution chain.
-    """
     cur.execute("""
         SELECT from_pokemon_id 
         FROM pokemon_evolutions 
@@ -281,18 +246,11 @@ def find_evolution_root(cur, pokemon_id):
     result = cur.fetchone()
     
     if result:
-        # This pokemon evolves FROM another, so go deeper
         return find_evolution_root(cur, result[0])
     else:
-        # No pre-evolution found, this IS the root
         return pokemon_id
 
 def build_evolution_tree(cur, current_id, target_id):
-    """
-    Recursively build evolution tree with all branches and requirements.
-    """
-    
-    # Get current pokemon info
     cur.execute("""
         SELECT id, name, image 
         FROM pokemon 
@@ -311,7 +269,6 @@ def build_evolution_tree(cur, current_id, target_id):
         "evolutions": []
     }
     
-    # Get all direct evolutions FROM this pokemon
     cur.execute("""
         SELECT pe.id, pe.to_pokemon_id, p.name, p.image
         FROM pokemon_evolutions pe
@@ -325,10 +282,7 @@ def build_evolution_tree(cur, current_id, target_id):
     for evo in evolutions:
         evo_id = evo[0]
         to_pokemon_id = evo[1]
-        to_pokemon_name = evo[2]
-        to_pokemon_image = evo[3]
         
-        # Get evolution requirements
         cur.execute("""
             SELECT requirement_type, requirement_value
             FROM evolution_requirements
@@ -339,7 +293,6 @@ def build_evolution_tree(cur, current_id, target_id):
         requirements = cur.fetchall()
         req_text = format_requirements(requirements)
         
-        # Recursively build the next level
         next_node = build_evolution_tree(cur, to_pokemon_id, target_id)
         
         if next_node:
@@ -349,10 +302,6 @@ def build_evolution_tree(cur, current_id, target_id):
     return node
 
 def format_requirements(requirements):
-    """
-    Format evolution requirements into readable text.
-    Examples: "Level 16", "Item: Water Stone", "Level 30 + Gender: Male"
-    """
     if not requirements:
         return "Unknown"
     
@@ -383,7 +332,6 @@ def format_requirements(requirements):
     
     return " + ".join(parts) if parts else "Unknown"
 
-
 # ========================
 # 3. API: GET ABILITY DETAILS
 # ========================
@@ -395,7 +343,6 @@ def get_ability_details(ability_id):
 
     cur = conn.cursor()
     try:
-        # Get ability information
         cur.execute("""
             SELECT id, name, description
             FROM abilities
@@ -412,7 +359,6 @@ def get_ability_details(ability_id):
             "description": ability_row[2]
         }
         
-        # Get all Pokemon with this ability
         cur.execute("""
             SELECT DISTINCT p.id, p.name, p.type1, p.type2
             FROM POKEMON_MASTER_VIEW p
@@ -444,9 +390,8 @@ def get_ability_details(ability_id):
         cur.close()
         conn.close()
 
-
 # ========================
-# 4. API: GET ALL ABILITIES (for list/search)
+# 4. API: GET ALL ABILITIES
 # ========================
 @app.route("/api/abilities")
 def get_all_abilities():
@@ -482,7 +427,6 @@ def get_all_abilities():
         cur.close()
         conn.close()
 
-
 # ========================
 # 5. API: GET TYPE DETAILS
 # ========================
@@ -494,7 +438,6 @@ def get_type_details(type_name):
 
     cur = conn.cursor()
     try:
-        # Get type information
         cur.execute("""
             SELECT id, name
             FROM types
@@ -513,7 +456,6 @@ def get_type_details(type_name):
             "name": type_name_db
         }
         
-        # Get all Pokemon with this type (either type1 or type2)
         cur.execute("""
             SELECT DISTINCT id, name, type1, type2
             FROM POKEMON_MASTER_VIEW
@@ -532,8 +474,6 @@ def get_type_details(type_name):
         
         type_data['pokemon'] = pokemon_list
         type_data['pokemon_count'] = len(pokemon_list)
-        
-        # Get type effectiveness for this type
         type_data['effectiveness'] = get_type_matchups(cur, type_id)
         
         return jsonify(type_data)
@@ -546,7 +486,6 @@ def get_type_details(type_name):
     finally:
         cur.close()
         conn.close()
-
 
 # ========================
 # 6. API: GET ALL TYPES
@@ -584,20 +523,13 @@ def get_all_types():
         cur.close()
         conn.close()
 
-
 # ========================
 # HELPER: GET TYPE MATCHUPS
 # ========================
 def get_type_matchups(cur, type_id):
-    """
-    Get offensive and defensive matchups for a specific type.
-    """
-    
-    # Get all types
     cur.execute("SELECT id, name FROM types ORDER BY name")
     all_types = cur.fetchall()
     
-    # OFFENSIVE: This type attacking others
     offensive = {}
     for def_type_id, def_type_name in all_types:
         cur.execute("""
@@ -606,11 +538,9 @@ def get_type_matchups(cur, type_id):
             WHERE attack_type_id = :atk AND defense_type_id = :def
         """, {"atk": type_id, "def": def_type_id})
         result = cur.fetchone()
-        # Convert to float to handle Oracle decimal format
         multiplier = float(result[0]) if result and result[0] is not None else 1.0
         offensive[def_type_name.lower()] = multiplier
     
-    # DEFENSIVE: Others attacking this type
     defensive = {}
     for atk_type_id, atk_type_name in all_types:
         cur.execute("""
@@ -619,11 +549,9 @@ def get_type_matchups(cur, type_id):
             WHERE attack_type_id = :atk AND defense_type_id = :def
         """, {"atk": atk_type_id, "def": type_id})
         result = cur.fetchone()
-        # Convert to float to handle Oracle decimal format
         multiplier = float(result[0]) if result and result[0] is not None else 1.0
         defensive[atk_type_name.lower()] = multiplier
     
-    # Categorize
     super_effective = [t for t, m in offensive.items() if m > 1]
     not_very_effective = [t for t, m in offensive.items() if 0 < m < 1]
     no_effect_offensive = [t for t, m in offensive.items() if m == 0]
@@ -645,10 +573,21 @@ def get_type_matchups(cur, type_id):
         }
     }
 
+# ========================
+# HEALTH CHECK ENDPOINT
+# ========================
+@app.route("/health")
+def health_check():
+    conn = get_connection()
+    if conn:
+        conn.close()
+        return jsonify({"status": "healthy", "database": "connected"}), 200
+    return jsonify({"status": "unhealthy", "database": "disconnected"}), 500
 
 # ========================
 # START SERVER
 # ========================
 if __name__ == "__main__":
-    print("Starting Flask Server on http://127.0.0.1:5000")
-    app.run(host="0.0.0.0", debug=True, port=5000)
+    print(f"🚀 Starting Flask Server on http://0.0.0.0:5000")
+    print(f"🔗 Database: {DB_CONFIG['dsn']}")
+    app.run(host="0.0.0.0", debug=False, port=5000)
