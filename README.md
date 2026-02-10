@@ -241,7 +241,7 @@
 git clone https://github.com/hamza05-dot/PokemonGame.git
 cd PokemonGame
 # 2. Start all services
-docker-compose up -d
+docker-compose up -d --build
 
 # 3. Import database
 ./import_data.bat  # Windows
