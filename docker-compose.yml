@@ -16,38 +16,58 @@ services:
 
   # Backend (Flask API)
   backend:
-    build: ./backend
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: pokemon_backend
     depends_on:
       - oracle-db
     environment:
+      - DOCKER_BUILDKIT=0  # Fix for Docker crash
       - DB_HOST=oracle-db
       - DB_PORT=1521
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_SID=${DB_SID}
+      - FLASK_ENV=development  # Enable Flask auto-reload
+      - FLASK_DEBUG=1  # Enable debug mode
     ports:
       - "5000:5000"
+    volumes:
+      - ./backend:/app  # Two-way sync - changes reflect immediately
+      - backend-logs:/app/logs
     networks:
       - pokemon-network
     restart: unless-stopped
     command: >
-      sh -c "sleep 30 && python -m flask run --host=0.0.0.0 --port=5000"
+      sh -c "sleep 30 && python -m flask run --host=0.0.0.0 --port=5000 --reload"
 
   # Frontend (Nginx)
   frontend:
-    build: ./frontend
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: pokemon_frontend
     depends_on:
       - backend
+    environment:
+      - DOCKER_BUILDKIT=0  # Fix for Docker crash
     ports:
       - "80:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html  # Two-way sync - changes reflect immediately
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf
+      - frontend-logs:/var/log/nginx
     networks:
       - pokemon-network
     restart: unless-stopped
 
 volumes:
   oracle-data:
+    driver: local
+  backend-logs:
+    driver: local
+  frontend-logs:
     driver: local
 
 networks:

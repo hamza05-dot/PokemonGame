@@ -1,8 +1,11 @@
-# Create the file
-New-Item -Path "backend\.dockerignore" -ItemType File -Force
+---
 
-# Add content
-@"
+## 📁 **FILE 2: `backend/.dockerignore`**
+
+**Location:** `C:\Users\lenocvo m\Documents\PokemonGame\backend\.dockerignore`
+
+**Create this file (starts with a dot):**
+```
 venv/
 __pycache__/
 *.pyc
@@ -13,4 +16,3 @@ __pycache__/
 .git/
 .gitignore
 *.log
-"@ | Set-Content -Path "backend\.dockerignore"

@@ -3,6 +3,7 @@ from flask_cors import CORS
 import oracledb
 import json
 import os
+import traceback
 
 app = Flask(__name__)
 app.json.sort_keys = False
@@ -140,7 +141,6 @@ def get_pokemon_details(poke_id):
     
     except Exception as e:
         print(f"Error in get_pokemon_details: {e}")
-        import traceback
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
     finally:
@@ -165,7 +165,6 @@ def calculate_type_effectiveness(cur, type1, type2=None):
             type2_id = type2_row[0]
     
     defensive = {}
-    
     cur.execute("SELECT id, name FROM types ORDER BY name")
     all_types = cur.fetchall()
     
@@ -194,7 +193,6 @@ def calculate_type_effectiveness(cur, type1, type2=None):
         defensive[attack_type_name.lower()] = multiplier
     
     offensive = {}
-    
     for defense_type_id, defense_type_name in all_types:
         cur.execute("""
             SELECT multiplier 
@@ -205,25 +203,17 @@ def calculate_type_effectiveness(cur, type1, type2=None):
         multiplier = float(result[0]) if result and result[0] is not None else 1.0
         offensive[defense_type_name.lower()] = multiplier
     
-    weak_to = [t for t, m in defensive.items() if m > 1]
-    resistant_to = [t for t, m in defensive.items() if 0 < m < 1]
-    immune_to = [t for t, m in defensive.items() if m == 0]
-    
-    super_effective = [t for t, m in offensive.items() if m > 1]
-    not_very_effective = [t for t, m in offensive.items() if 0 < m < 1]
-    no_effect = [t for t, m in offensive.items() if m == 0]
-    
     return {
         "defensive": {
-            "weak_to": weak_to,
-            "resistant_to": resistant_to,
-            "immune_to": immune_to,
+            "weak_to": [t for t, m in defensive.items() if m > 1],
+            "resistant_to": [t for t, m in defensive.items() if 0 < m < 1],
+            "immune_to": [t for t, m in defensive.items() if m == 0],
             "multipliers": defensive
         },
         "offensive": {
-            "super_effective": super_effective,
-            "not_very_effective": not_very_effective,
-            "no_effect": no_effect,
+            "super_effective": [t for t, m in offensive.items() if m > 1],
+            "not_very_effective": [t for t, m in offensive.items() if 0 < m < 1],
+            "no_effect": [t for t, m in offensive.items() if m == 0],
             "multipliers": offensive
         }
     }
@@ -242,24 +232,15 @@ def find_evolution_root(cur, pokemon_id):
         FROM pokemon_evolutions 
         WHERE to_pokemon_id = :id
     """, {"id": pokemon_id})
-    
     result = cur.fetchone()
-    
     if result:
         return find_evolution_root(cur, result[0])
-    else:
-        return pokemon_id
+    return pokemon_id
 
 def build_evolution_tree(cur, current_id, target_id):
-    cur.execute("""
-        SELECT id, name, image 
-        FROM pokemon 
-        WHERE id = :id
-    """, {"id": current_id})
-    
+    cur.execute("SELECT id, name, image FROM pokemon WHERE id = :id", {"id": current_id})
     pokemon = cur.fetchone()
-    if not pokemon:
-        return None
+    if not pokemon: return None
     
     node = {
         "id": pokemon[0],
@@ -278,11 +259,8 @@ def build_evolution_tree(cur, current_id, target_id):
     """, {"id": current_id})
     
     evolutions = cur.fetchall()
-    
     for evo in evolutions:
-        evo_id = evo[0]
-        to_pokemon_id = evo[1]
-        
+        evo_id, to_id, name, img = evo
         cur.execute("""
             SELECT requirement_type, requirement_value
             FROM evolution_requirements
@@ -290,11 +268,8 @@ def build_evolution_tree(cur, current_id, target_id):
             ORDER BY id
         """, {"evo_id": evo_id})
         
-        requirements = cur.fetchall()
-        req_text = format_requirements(requirements)
-        
-        next_node = build_evolution_tree(cur, to_pokemon_id, target_id)
-        
+        req_text = format_requirements(cur.fetchall())
+        next_node = build_evolution_tree(cur, to_id, target_id)
         if next_node:
             next_node['requirement'] = req_text
             node['evolutions'].append(next_node)
@@ -302,279 +277,149 @@ def build_evolution_tree(cur, current_id, target_id):
     return node
 
 def format_requirements(requirements):
-    if not requirements:
-        return "Unknown"
-    
+    if not requirements: return "Unknown"
     parts = []
     for req_type, req_value in requirements:
         req_type = req_type.lower() if req_type else ""
         req_value = str(req_value) if req_value else ""
-        
-        if req_type == "level":
-            parts.append(f"Level {req_value}")
-        elif req_type == "item":
-            parts.append(f"Item: {req_value}")
-        elif req_type == "gender":
-            parts.append(f"Gender: {req_value}")
-        elif req_type == "friendship":
-            parts.append(f"Friendship: {req_value}")
-        elif req_type == "time":
-            parts.append(f"Time: {req_value}")
-        elif req_type == "location":
-            parts.append(f"Location: {req_value}")
-        elif req_type == "trade":
-            parts.append("Trade")
-        else:
-            if req_value:
-                parts.append(f"{req_type.title()}: {req_value}")
-            else:
-                parts.append(req_type.title())
-    
+        if req_type == "level": parts.append(f"Level {req_value}")
+        elif req_type == "item": parts.append(f"Item: {req_value}")
+        elif req_type == "trade": parts.append("Trade")
+        else: parts.append(f"{req_type.title()}: {req_value}" if req_value else req_type.title())
     return " + ".join(parts) if parts else "Unknown"
 
 # ========================
-# 3. API: GET ABILITY DETAILS
-# ========================
-@app.route("/api/abilities/<int:ability_id>")
-def get_ability_details(ability_id):
-    conn = get_connection()
-    if not conn:
-        return jsonify({"error": "DB Connection Failed"}), 500
-
-    cur = conn.cursor()
-    try:
-        cur.execute("""
-            SELECT id, name, description
-            FROM abilities
-            WHERE id = :id
-        """, {"id": ability_id})
-        
-        ability_row = cur.fetchone()
-        if not ability_row:
-            return jsonify({"error": "Ability not found"}), 404
-        
-        ability_data = {
-            "id": ability_row[0],
-            "name": ability_row[1],
-            "description": ability_row[2]
-        }
-        
-        cur.execute("""
-            SELECT DISTINCT p.id, p.name, p.type1, p.type2
-            FROM POKEMON_MASTER_VIEW p
-            JOIN pokemon_abilities pa ON p.id = pa.pokemon_id
-            WHERE pa.ability_id = :ability_id
-            ORDER BY p.name
-        """, {"ability_id": ability_id})
-        
-        pokemon_list = []
-        for poke_row in cur.fetchall():
-            pokemon_list.append({
-                "id": poke_row[0],
-                "name": poke_row[1],
-                "type1": poke_row[2],
-                "type2": poke_row[3]
-            })
-        
-        ability_data['pokemon'] = pokemon_list
-        ability_data['pokemon_count'] = len(pokemon_list)
-        
-        return jsonify(ability_data)
-    
-    except Exception as e:
-        print(f"Error in get_ability_details: {e}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
-    finally:
-        cur.close()
-        conn.close()
-
-# ========================
-# 4. API: GET ALL ABILITIES
+# 3. API: ABILITIES & TYPES
 # ========================
 @app.route("/api/abilities")
 def get_all_abilities():
     conn = get_connection()
-    if not conn:
-        return jsonify({"error": "DB Connection Failed"}), 500
-
+    if not conn: return jsonify({"error": "DB Connection Failed"}), 500
     cur = conn.cursor()
     try:
         cur.execute("""
-            SELECT a.id, a.name, a.description, COUNT(DISTINCT pa.pokemon_id) as pokemon_count
+            SELECT a.id, a.name, a.description, COUNT(DISTINCT pa.pokemon_id)
             FROM abilities a
             LEFT JOIN pokemon_abilities pa ON a.id = pa.ability_id
-            GROUP BY a.id, a.name, a.description
-            ORDER BY a.name
+            GROUP BY a.id, a.name, a.description ORDER BY a.name
         """)
-        
-        abilities = []
-        for row in cur.fetchall():
-            abilities.append({
-                "id": row[0],
-                "name": row[1],
-                "description": row[2],
-                "pokemon_count": row[3]
-            })
-        
+        abilities = [{"id": r[0], "name": r[1], "description": r[2], "pokemon_count": r[3]} for r in cur.fetchall()]
         return jsonify(abilities)
-    
-    except Exception as e:
-        print(f"Error in get_all_abilities: {e}")
-        return jsonify({"error": str(e)}), 500
     finally:
         cur.close()
         conn.close()
 
-# ========================
-# 5. API: GET TYPE DETAILS
-# ========================
-@app.route("/api/types/<string:type_name>")
-def get_type_details(type_name):
+@app.route("/api/abilities/<int:ability_id>")
+def get_ability_details(ability_id):
     conn = get_connection()
-    if not conn:
-        return jsonify({"error": "DB Connection Failed"}), 500
-
+    if not conn: return jsonify({"error": "DB Connection Failed"}), 500
     cur = conn.cursor()
     try:
-        cur.execute("""
-            SELECT id, name
-            FROM types
-            WHERE LOWER(name) = LOWER(:name)
-        """, {"name": type_name})
-        
-        type_row = cur.fetchone()
-        if not type_row:
-            return jsonify({"error": "Type not found"}), 404
-        
-        type_id = type_row[0]
-        type_name_db = type_row[1]
-        
-        type_data = {
-            "id": type_id,
-            "name": type_name_db
-        }
+        cur.execute("SELECT id, name, description FROM abilities WHERE id = :id", {"id": ability_id})
+        ability_row = cur.fetchone()
+        if not ability_row: return jsonify({"error": "Ability not found"}), 404
         
         cur.execute("""
-            SELECT DISTINCT id, name, type1, type2
-            FROM POKEMON_MASTER_VIEW
-            WHERE LOWER(type1) = LOWER(:type_name) OR LOWER(type2) = LOWER(:type_name)
-            ORDER BY id
-        """, {"type_name": type_name_db})
+            SELECT DISTINCT p.id, p.name, p.type1, p.type2 FROM POKEMON_MASTER_VIEW p
+            JOIN pokemon_abilities pa ON p.id = pa.pokemon_id
+            WHERE pa.ability_id = :id ORDER BY p.name
+        """, {"id": ability_id})
+        pokemon = [{"id": r[0], "name": r[1], "type1": r[2], "type2": r[3]} for r in cur.fetchall()]
         
-        pokemon_list = []
-        for poke_row in cur.fetchall():
-            pokemon_list.append({
-                "id": poke_row[0],
-                "name": poke_row[1],
-                "type1": poke_row[2],
-                "type2": poke_row[3]
-            })
-        
-        type_data['pokemon'] = pokemon_list
-        type_data['pokemon_count'] = len(pokemon_list)
-        type_data['effectiveness'] = get_type_matchups(cur, type_id)
-        
-        return jsonify(type_data)
-    
-    except Exception as e:
-        print(f"Error in get_type_details: {e}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"id": ability_row[0], "name": ability_row[1], "description": ability_row[2], "pokemon": pokemon, "pokemon_count": len(pokemon)})
     finally:
         cur.close()
         conn.close()
 
-# ========================
-# 6. API: GET ALL TYPES
-# ========================
 @app.route("/api/types")
 def get_all_types():
     conn = get_connection()
-    if not conn:
-        return jsonify({"error": "DB Connection Failed"}), 500
-
+    if not conn: return jsonify({"error": "DB Connection Failed"}), 500
     cur = conn.cursor()
     try:
         cur.execute("""
-            SELECT t.id, t.name, COUNT(DISTINCT p.id) as pokemon_count
-            FROM types t
+            SELECT t.id, t.name, COUNT(DISTINCT p.id) FROM types t
             LEFT JOIN POKEMON_MASTER_VIEW p ON (LOWER(p.type1) = LOWER(t.name) OR LOWER(p.type2) = LOWER(t.name))
-            GROUP BY t.id, t.name
-            ORDER BY t.name
+            GROUP BY t.id, t.name ORDER BY t.name
         """)
-        
-        types = []
-        for row in cur.fetchall():
-            types.append({
-                "id": row[0],
-                "name": row[1],
-                "pokemon_count": row[2]
-            })
-        
+        types = [{"id": r[0], "name": r[1], "pokemon_count": r[2]} for r in cur.fetchall()]
         return jsonify(types)
-    
-    except Exception as e:
-        print(f"Error in get_all_types: {e}")
-        return jsonify({"error": str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+@app.route("/api/types/<string:type_name>")
+def get_type_details(type_name):
+    conn = get_connection()
+    if not conn: return jsonify({"error": "DB Connection Failed"}), 500
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT id, name FROM types WHERE LOWER(name) = LOWER(:n)", {"n": type_name})
+        t_row = cur.fetchone()
+        if not t_row: return jsonify({"error": "Type not found"}), 404
+        
+        cur.execute("""
+            SELECT DISTINCT id, name, type1, type2 FROM POKEMON_MASTER_VIEW
+            WHERE LOWER(type1) = LOWER(:n) OR LOWER(type2) = LOWER(:n) ORDER BY id
+        """, {"n": t_row[1]})
+        pokemon = [{"id": r[0], "name": r[1], "type1": r[2], "type2": r[3]} for r in cur.fetchall()]
+        
+        return jsonify({"id": t_row[0], "name": t_row[1], "pokemon": pokemon, "pokemon_count": len(pokemon), "effectiveness": get_type_matchups(cur, t_row[0])})
+    finally:
+        cur.close()
+        conn.close()
+
+def get_type_matchups(cur, type_id):
+    cur.execute("SELECT id, name FROM types ORDER BY name")
+    all_types = cur.fetchall()
+    off, df = {}, {}
+    for tid, tname in all_types:
+        cur.execute("SELECT multiplier FROM type_effectiveness WHERE attack_type_id = :a AND defense_type_id = :d", {"a": type_id, "d": tid})
+        r = cur.fetchone()
+        off[tname.lower()] = float(r[0]) if r else 1.0
+        cur.execute("SELECT multiplier FROM type_effectiveness WHERE attack_type_id = :a AND defense_type_id = :d", {"a": tid, "d": type_id})
+        r = cur.fetchone()
+        df[tname.lower()] = float(r[0]) if r else 1.0
+        
+    return {
+        "offensive": {"super_effective": [t for t, m in off.items() if m > 1], "not_very_effective": [t for t, m in off.items() if 0 < m < 1], "no_effect": [t for t, m in off.items() if m == 0]},
+        "defensive": {"weak_to": [t for t, m in df.items() if m > 1], "resistant_to": [t for t, m in df.items() if 0 < m < 1], "immune_to": [t for t, m in df.items() if m == 0]}
+    }
+
+# ========================
+# 4. API: ITEMS
+# ========================
+@app.route("/api/items")
+def get_all_items():
+    conn = get_connection()
+    if not conn: return jsonify({"error": "DB Connection Failed"}), 500
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT ITEM_ID, ITEM_NAME, CATEGORY, EFFECT FROM POKEMON_ITEMS ORDER BY ITEM_NAME ASC")
+        columns = [col[0].lower() for col in cur.description]
+        items = [dict(zip(columns, row)) for row in cur.fetchall()]
+        return jsonify(items)
+    finally:
+        cur.close()
+        conn.close()
+
+@app.route("/api/items/<int:item_id>")
+def get_item_details(item_id):
+    conn = get_connection()
+    if not conn: return jsonify({"error": "DB Connection Failed"}), 500
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT * FROM POKEMON_ITEMS WHERE ITEM_ID = :id", {"id": item_id})
+        row = cur.fetchone()
+        if not row: return jsonify({"error": "Item not found"}), 404
+        columns = [col[0].lower() for col in cur.description]
+        return jsonify(dict(zip(columns, row)))
     finally:
         cur.close()
         conn.close()
 
 # ========================
-# HELPER: GET TYPE MATCHUPS
-# ========================
-def get_type_matchups(cur, type_id):
-    cur.execute("SELECT id, name FROM types ORDER BY name")
-    all_types = cur.fetchall()
-    
-    offensive = {}
-    for def_type_id, def_type_name in all_types:
-        cur.execute("""
-            SELECT multiplier 
-            FROM type_effectiveness 
-            WHERE attack_type_id = :atk AND defense_type_id = :def
-        """, {"atk": type_id, "def": def_type_id})
-        result = cur.fetchone()
-        multiplier = float(result[0]) if result and result[0] is not None else 1.0
-        offensive[def_type_name.lower()] = multiplier
-    
-    defensive = {}
-    for atk_type_id, atk_type_name in all_types:
-        cur.execute("""
-            SELECT multiplier 
-            FROM type_effectiveness 
-            WHERE attack_type_id = :atk AND defense_type_id = :def
-        """, {"atk": atk_type_id, "def": type_id})
-        result = cur.fetchone()
-        multiplier = float(result[0]) if result and result[0] is not None else 1.0
-        defensive[atk_type_name.lower()] = multiplier
-    
-    super_effective = [t for t, m in offensive.items() if m > 1]
-    not_very_effective = [t for t, m in offensive.items() if 0 < m < 1]
-    no_effect_offensive = [t for t, m in offensive.items() if m == 0]
-    
-    weak_to = [t for t, m in defensive.items() if m > 1]
-    resistant_to = [t for t, m in defensive.items() if 0 < m < 1]
-    immune_to = [t for t, m in defensive.items() if m == 0]
-    
-    return {
-        "offensive": {
-            "super_effective": super_effective,
-            "not_very_effective": not_very_effective,
-            "no_effect": no_effect_offensive
-        },
-        "defensive": {
-            "weak_to": weak_to,
-            "resistant_to": resistant_to,
-            "immune_to": immune_to
-        }
-    }
-
-# ========================
-# HEALTH CHECK ENDPOINT
+# HEALTH CHECK & START
 # ========================
 @app.route("/health")
 def health_check():
@@ -584,10 +429,6 @@ def health_check():
         return jsonify({"status": "healthy", "database": "connected"}), 200
     return jsonify({"status": "unhealthy", "database": "disconnected"}), 500
 
-# ========================
-# START SERVER
-# ========================
 if __name__ == "__main__":
     print(f"🚀 Starting Flask Server on http://0.0.0.0:5000")
-    print(f"🔗 Database: {DB_CONFIG['dsn']}")
     app.run(host="0.0.0.0", debug=False, port=5000)
