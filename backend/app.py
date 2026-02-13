@@ -331,6 +331,9 @@ def get_ability_details(ability_id):
         cur.close()
         conn.close()
 
+# ========================
+# API: GET ALL TYPES (case-insensitive)
+# ========================
 @app.route("/api/types")
 def get_all_types():
     conn = get_connection()
@@ -338,9 +341,12 @@ def get_all_types():
     cur = conn.cursor()
     try:
         cur.execute("""
-            SELECT t.id, t.name, COUNT(DISTINCT p.id) FROM types t
-            LEFT JOIN POKEMON_MASTER_VIEW p ON (LOWER(p.type1) = LOWER(t.name) OR LOWER(p.type2) = LOWER(t.name))
-            GROUP BY t.id, t.name ORDER BY t.name
+            SELECT t.id, t.name, COUNT(DISTINCT p.id) 
+            FROM types t
+            LEFT JOIN POKEMON_MASTER_VIEW p 
+            ON LOWER(p.type1) = LOWER(t.name) OR LOWER(p.type2) = LOWER(t.name)
+            GROUP BY t.id, t.name
+            ORDER BY t.name
         """)
         types = [{"id": r[0], "name": r[1], "pokemon_count": r[2]} for r in cur.fetchall()]
         return jsonify(types)
@@ -354,20 +360,31 @@ def get_type_details(type_name):
     if not conn: return jsonify({"error": "DB Connection Failed"}), 500
     cur = conn.cursor()
     try:
+        # Case-insensitive lookup
         cur.execute("SELECT id, name FROM types WHERE LOWER(name) = LOWER(:n)", {"n": type_name})
         t_row = cur.fetchone()
-        if not t_row: return jsonify({"error": "Type not found"}), 404
-        
+        if not t_row: return jsonify({"error": f"Type '{type_name}' not found"}), 404
+
         cur.execute("""
-            SELECT DISTINCT id, name, type1, type2 FROM POKEMON_MASTER_VIEW
-            WHERE LOWER(type1) = LOWER(:n) OR LOWER(type2) = LOWER(:n) ORDER BY id
+            SELECT DISTINCT id, name, type1, type2 
+            FROM POKEMON_MASTER_VIEW
+            WHERE LOWER(type1) = LOWER(:n) OR LOWER(type2) = LOWER(:n)
+            ORDER BY id
         """, {"n": t_row[1]})
         pokemon = [{"id": r[0], "name": r[1], "type1": r[2], "type2": r[3]} for r in cur.fetchall()]
-        
-        return jsonify({"id": t_row[0], "name": t_row[1], "pokemon": pokemon, "pokemon_count": len(pokemon), "effectiveness": get_type_matchups(cur, t_row[0])})
+
+        return jsonify({
+            "id": t_row[0],
+            "name": t_row[1],
+            "pokemon": pokemon,
+            "pokemon_count": len(pokemon),
+            "effectiveness": get_type_matchups(cur, t_row[0])
+        })
     finally:
         cur.close()
         conn.close()
+
+
 
 def get_type_matchups(cur, type_id):
     cur.execute("SELECT id, name FROM types ORDER BY name")

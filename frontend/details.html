@@ -15,7 +15,6 @@
             overflow: hidden; /* Prevent the html element itself from scrolling */
             overscroll-behavior: none; /* Disable the rubber-band/white space effect */
         }
-
         body {
             height: 100%;
             width: 100%;
@@ -32,14 +31,12 @@
             -webkit-overflow-scrolling: touch; /* Smooth scroll for iOS */
             overscroll-behavior-y: none; /* Secondary block for mobile browsers */
         }
-
         /* Buffer for navigation if it's sticky/fixed */
         .navbar {
             position: sticky;
             top: 0;
             z-index: 1000;
         }
-
         #detail-container {
             padding-bottom: 50px; /* Prevent content from hitting the bottom edge */
         }
@@ -72,6 +69,10 @@
                     <span class="link-icon">💪</span>
                     <span>Abilities</span>
                 </a>
+                <a href="items-list.html" class="nav-link">
+                    <span class="link-icon">🎒</span>
+                    <span>Items</span>
+                </a>
                 <a class="nav-link disabled">
                     <span class="link-icon">⭐</span>
                     <span>Favourites</span>
@@ -87,11 +88,9 @@
             </div>
         </div>
     </nav>
-
     <div id="detail-container">
         <p style="color:white; text-align:center;">Loading...</p>
     </div>
-
     <script src="navigation.js"></script>
     <script src="details.js"></script>
 </body>

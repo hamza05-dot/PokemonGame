@@ -1,7 +1,6 @@
-version: '3.8'
+volumes: {}
 
 services:
-  # Oracle Database Container
   oracle-db:
     image: wnameless/oracle-xe-11g-r2
     container_name: pokemon_oracle_db
@@ -10,11 +9,10 @@ services:
     environment:
       - ORACLE_ALLOW_REMOTE=true
     volumes:
-      - oracle-data:/opt/oracle/oradata
+      - ./Database/oracle-data:/opt/oracle/oradata
     networks:
       - pokemon-network
 
-  # Backend (Flask API)
   backend:
     build: 
       context: ./backend
@@ -23,26 +21,24 @@ services:
     depends_on:
       - oracle-db
     environment:
-      - DOCKER_BUILDKIT=0  # Fix for Docker crash
       - DB_HOST=oracle-db
       - DB_PORT=1521
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_SID=${DB_SID}
-      - FLASK_ENV=development  # Enable Flask auto-reload
-      - FLASK_DEBUG=1  # Enable debug mode
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
     ports:
       - "5000:5000"
     volumes:
-      - ./backend:/app  # Two-way sync - changes reflect immediately
-      - backend-logs:/app/logs
+      - ./backend:/app
+      - ./backend/logs:/app/logs
     networks:
       - pokemon-network
     restart: unless-stopped
     command: >
       sh -c "sleep 30 && python -m flask run --host=0.0.0.0 --port=5000 --reload"
 
-  # Frontend (Nginx)
   frontend:
     build: 
       context: ./frontend
@@ -51,24 +47,16 @@ services:
     depends_on:
       - backend
     environment:
-      - DOCKER_BUILDKIT=0  # Fix for Docker crash
+      - DOCKER_BUILDKIT=0
     ports:
       - "80:80"
     volumes:
-      - ./frontend:/usr/share/nginx/html  # Two-way sync - changes reflect immediately
+      - ./frontend:/usr/share/nginx/html
       - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf
-      - frontend-logs:/var/log/nginx
+      - ./frontend/logs:/var/log/nginx
     networks:
       - pokemon-network
     restart: unless-stopped
-
-volumes:
-  oracle-data:
-    driver: local
-  backend-logs:
-    driver: local
-  frontend-logs:
-    driver: local
 
 networks:
   pokemon-network:

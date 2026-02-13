@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="icon" type="image/png" href="favicon.png">
-    <title>All Abilities - PokéSearch</title>
+    <title>All Items - PokéSearch</title>
     <link rel="stylesheet" href="navigation.css">
     <style>
         /* ===================================
-           ABILITIES LIST - ENHANCED STYLES
+           ITEMS LIST - ENHANCED STYLES
            =================================== */
         * {
             margin: 0;
@@ -92,9 +92,11 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             display: flex;
             justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
         }
 
-        .sort-btn {
+        .sort-btn, .filter-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
@@ -107,25 +109,27 @@
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
-        .sort-btn:hover {
+        .sort-btn:hover, .filter-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
 
-        /* ABILITIES GRID */
-        .abilities-grid {
+        .filter-btn.active {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+
+        /* ITEMS GRID */
+        .items-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 20px;
         }
 
-        .ability-card {
+        .item-card {
             background: white;
             border-radius: 20px;
             padding: 25px;
-            cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-decoration: none;
             color: #333;
             display: flex;
             flex-direction: column;
@@ -134,40 +138,65 @@
             height: 100%;
         }
 
-        .ability-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        .item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.12);
         }
 
-        .ability-name {
+        .item-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .item-sprite {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 5px;
+        }
+
+        .item-name {
             font-size: 1.4rem;
             font-weight: 800;
             text-transform: capitalize;
-            margin-bottom: 12px;
             color: #2c3e50;
+            flex: 1;
         }
 
-        .ability-description {
+        .item-category {
+            background: #e6fffa;
+            color: #234e52;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            border: 1px solid #b2f5ea;
+            margin-bottom: 12px;
+            align-self: flex-start;
+        }
+
+        .item-description {
             font-size: 0.95rem;
             color: #4a5568;
             line-height: 1.6;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             flex-grow: 1;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
         }
 
-        .pokemon-count-badge {
+        .item-cost {
             align-self: flex-start;
-            background: #f0f4ff;
-            color: #5a67d8;
+            background: #fff5f5;
+            color: #c53030;
             padding: 6px 14px;
             border-radius: 20px;
             font-size: 0.85rem;
             font-weight: 700;
-            border: 1px solid #e0e7ff;
+            border: 1px solid #fed7d7;
         }
 
         /* LOADING SPINNER */
@@ -194,9 +223,10 @@
         }
 
         @media (max-width: 768px) {
-            .abilities-grid { grid-template-columns: 1fr; }
-            .ability-card { padding: 20px; }
-            .ability-name { font-size: 1.25rem; }
+            .items-grid { grid-template-columns: 1fr; }
+            .item-card { padding: 20px; }
+            .item-name { font-size: 1.25rem; }
+            .controls { flex-direction: column; }
         }
     </style>
 </head>
@@ -213,36 +243,39 @@
             <div class="nav-menu" id="navMenu">
                 <a href="index.html" class="nav-link"><span class="link-icon">🏠</span><span>Home</span></a>
                 <a href="types-list.html" class="nav-link"><span class="link-icon">⚡</span><span>Types</span></a>
-                <a href="abilities-list.html" class="nav-link active"><span class="link-icon">💪</span><span>Abilities</span></a>
-                <a href="items-list.html" class="nav-link"><span class="link-icon">🎒</span><span>Item</span></a>
-
+                <a href="abilities-list.html" class="nav-link"><span class="link-icon">💪</span><span>Abilities</span></a>
+                <a href="items-list.html" class="nav-link active"><span class="link-icon">🎒</span><span>Items</span></a>
                 <a class="nav-link disabled"><span class="link-icon">⭐</span><span>Favourites</span></a>
             </div>
         </div>
     </nav>
 
     <div class="container">
-        <h1>💪 All Abilities</h1>
+        <h1>🎒 All Items</h1>
         
         <div class="search-box">
-            <input type="text" id="ability-search" placeholder="🔍 Search abilities or descriptions..." oninput="filterAbilities()">
+            <input type="text" id="item-search" placeholder="🔎 Search items or descriptions..." oninput="filterItems()">
         </div>
 
         <div class="controls">
             <button class="sort-btn" onclick="toggleSort()">
                 <span id="sort-text">⬆️ Sort: A-Z</span>
             </button>
+            <button class="filter-btn" id="filter-btn" onclick="toggleCategoryFilter()">
+                <span id="filter-text">📦 All Categories</span>
+            </button>
         </div>
 
-        <div id="abilities-container">
+        <div id="items-container">
             <div class="spinner"></div>
         </div>
     </div>
 
     <script src="navigation.js"></script>
     <script>
-let allAbilities = [];
+        let allItems = [];
         let sortAsc = true;
+        let currentCategory = '';
 
         const API_ENDPOINTS = {
             primary: 'http://localhost:5000',
@@ -252,7 +285,7 @@ let allAbilities = [];
         let currentEndpoint = API_ENDPOINTS.primary;
 
         /**
-         * Corrected apiFetch with proper await and headers for ngrok
+         * API fetch with fallback support
          */
         async function apiFetch(path, options = {}) {
             const headers = { 
@@ -265,12 +298,10 @@ let allAbilities = [];
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 return response;
             } catch (error) {
-                // If the local API fails, we MUST await the fallback call
                 if (currentEndpoint === API_ENDPOINTS.primary) {
                     console.warn("Primary API failed, switching to fallback...");
                     currentEndpoint = API_ENDPOINTS.fallback;
                     
-                    // Added 'await' here so the function waits for ngrok to respond
                     const response = await fetch(`${currentEndpoint}${path}`, { ...options, headers });
                     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     return response;
@@ -279,12 +310,12 @@ let allAbilities = [];
             }
         }
 
-        async function loadAbilities() {
-            const container = document.getElementById('abilities-container');
+        async function loadItems() {
+            const container = document.getElementById('items-container');
             try {
-                const response = await apiFetch('/api/abilities');
-                allAbilities = await response.json();
-                displayAbilities(allAbilities);
+                const response = await apiFetch('/api/items');
+                allItems = await response.json();
+                displayItems(allItems);
             } catch (error) {
                 console.error("Load failed:", error);
                 container.innerHTML = `<p class="no-results">Failed to connect to API at ${currentEndpoint}.<br>Error: ${error.message}</p>`;
@@ -294,47 +325,94 @@ let allAbilities = [];
         function toggleSort() {
             sortAsc = !sortAsc;
             document.getElementById('sort-text').textContent = sortAsc ? '⬆️ Sort: A-Z' : '⬇️ Sort: Z-A';
-            filterAbilities();
+            filterItems();
         }
 
-        function filterAbilities() {
-            const term = document.getElementById('ability-search').value.toLowerCase();
-            const filtered = allAbilities.filter(a => 
-                a.name.toLowerCase().includes(term) || 
-                (a.description && a.description.toLowerCase().includes(term))
-            );
-            displayAbilities(filtered);
-        }
-
-        function displayAbilities(abilities) {
-            const container = document.getElementById('abilities-container');
+        function toggleCategoryFilter() {
+            const categories = [...new Set(allItems.map(item => item.category))].filter(Boolean);
             
-            if (abilities.length === 0) {
-                container.innerHTML = '<p class="no-results">No abilities matching your search.</p>';
+            if (currentCategory === '') {
+                // Cycle through categories
+                currentCategory = categories[0] || '';
+            } else {
+                const currentIndex = categories.indexOf(currentCategory);
+                if (currentIndex === categories.length - 1) {
+                    currentCategory = '';
+                } else {
+                    currentCategory = categories[currentIndex + 1];
+                }
+            }
+            
+            const filterBtn = document.getElementById('filter-btn');
+            const filterText = document.getElementById('filter-text');
+            
+            if (currentCategory === '') {
+                filterText.textContent = '📦 All Categories';
+                filterBtn.classList.remove('active');
+            } else {
+                filterText.textContent = `📦 ${currentCategory.replace(/-/g, ' ')}`;
+                filterBtn.classList.add('active');
+            }
+            
+            filterItems();
+        }
+
+        function filterItems() {
+            const term = document.getElementById('item-search').value.toLowerCase();
+            let filtered = allItems.filter(item => {
+                const name = item.item_name || '';
+                const effect = item.effect || '';
+                return name.toLowerCase().includes(term) || effect.toLowerCase().includes(term);
+            });
+            
+            if (currentCategory !== '') {
+                filtered = filtered.filter(item => item.category === currentCategory);
+            }
+            
+            displayItems(filtered);
+        }
+
+        function displayItems(items) {
+            const container = document.getElementById('items-container');
+            
+            if (items.length === 0) {
+                container.innerHTML = '<p class="no-results">No items matching your search.</p>';
                 return;
             }
 
-            const sorted = [...abilities].sort((a, b) => 
-                sortAsc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name)
-            );
+            const sorted = [...items].sort((a, b) => {
+                const nameA = a.item_name || '';
+                const nameB = b.item_name || '';
+                return sortAsc ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+            });
 
             container.innerHTML = `
-                <div class="abilities-grid">
-                    ${sorted.map(ability => `
-                        <a href="abilitie.html?id=${ability.id}" class="ability-card">
-                            <div class="ability-name">${ability.name.replace(/-/g, ' ')}</div>
-                            <div class="ability-description">
-                                ${ability.description || 'No description available for this ability.'}
+                <div class="items-grid">
+                    ${sorted.map(item => {
+                        const itemName = item.item_name || 'Unknown Item';
+                        const category = item.category;
+                        const effect = item.effect || 'No description available for this item.';
+                        const sprite = item.sprite;
+                        const cost = item.cost;
+                        
+                        return `
+                        <div class="item-card">
+                            <div class="item-header">
+                                ${sprite ? `<img src="${sprite}" alt="${itemName}" class="item-sprite" onerror="this.style.display='none'">` : ''}
+                                <div class="item-name">${itemName.replace(/-/g, ' ')}</div>
                             </div>
-                            <div class="pokemon-count-badge">
-                                👥 ${ability.pokemon_count} Pokémon
+                            ${category ? `<div class="item-category">${category.replace(/-/g, ' ')}</div>` : ''}
+                            <div class="item-description">
+                                ${effect}
                             </div>
-                        </a>
-                    `).join('')}
+                            ${cost && cost > 0 ? `<div class="item-cost">💰 ${cost.toLocaleString()} Poké</div>` : ''}
+                        </div>
+                        `;
+                    }).join('')}
                 </div>`;
         }
 
-        document.addEventListener('DOMContentLoaded', loadAbilities);
+        document.addEventListener('DOMContentLoaded', loadItems);
     </script>
 </body>
 </html>
