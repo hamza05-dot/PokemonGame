@@ -1,54 +1,39 @@
+;;; 
+Export: Release 11.2.0.2.0 - Production on Sam. Févr. 14 12:41:40 2026
 
+Copyright (c) 1982, 2009, Oracle and/or its affiliates.  All rights reserved.
+;;; 
 Connected to: Oracle Database 11g Express Edition Release 11.2.0.2.0 - 64bit Production
-Export done in WE8MSWIN1252 character set and AL16UTF16 NCHAR character set
-server uses AL32UTF8 character set (possible charset conversion)
-. exporting pre-schema procedural objects and actions
-. exporting foreign function library names for user POKEDB 
-. exporting PUBLIC type synonyms
-. exporting private type synonyms
-. exporting object type definitions for user POKEDB 
-About to export POKEDB's objects ...
-. exporting database links
-. exporting sequence numbers
-. exporting cluster definitions
-. about to export POKEDB's tables via Conventional Path ...
-. . exporting table                      ABILITIES        306 rows exported
-EXP-00091: Exporting questionable statistics.
-EXP-00091: Exporting questionable statistics.
-. . exporting table         EVOLUTION_REQUIREMENTS        547 rows exported
-EXP-00091: Exporting questionable statistics.
-EXP-00091: Exporting questionable statistics.
-. . exporting table                        POKEMON       1025 rows exported
-EXP-00091: Exporting questionable statistics.
-EXP-00091: Exporting questionable statistics.
-. . exporting table              POKEMON_ABILITIES       2398 rows exported
-EXP-00091: Exporting questionable statistics.
-EXP-00091: Exporting questionable statistics.
-. . exporting table             POKEMON_EVOLUTIONS        484 rows exported
-EXP-00091: Exporting questionable statistics.
-EXP-00091: Exporting questionable statistics.
-. . exporting table                  POKEMON_TYPES       1551 rows exported
-EXP-00091: Exporting questionable statistics.
-EXP-00091: Exporting questionable statistics.
-. . exporting table             TYPE_EFFECTIVENESS        119 rows exported
-EXP-00091: Exporting questionable statistics.
-. . exporting table                          TYPES         19 rows exported
-EXP-00091: Exporting questionable statistics.
-EXP-00091: Exporting questionable statistics.
-. exporting synonyms
-. exporting views
-. exporting stored procedures
-. exporting operators
-. exporting referential integrity constraints
-. exporting triggers
-. exporting indextypes
-. exporting bitmap, functional and extensible indexes
-. exporting posttables actions
-. exporting materialized views
-. exporting snapshot logs
-. exporting job queues
-. exporting refresh groups and children
-. exporting dimensions
-. exporting post-schema procedural objects and actions
-. exporting statistics
-Export terminated successfully with warnings.
+Starting "POKEDB"."SYS_EXPORT_SCHEMA_01":  POKEDB/********@localhost:1521/XE DIRECTORY=DATA_PUMP_DIR DUMPFILE=schema_export.dmp LOGFILE=export.log SCHEMAS=POKEDB 
+Estimate in progress using BLOCKS method...
+Processing object type SCHEMA_EXPORT/TABLE/TABLE_DATA
+Total estimation using BLOCKS method: 832 KB
+Processing object type SCHEMA_EXPORT/USER
+Processing object type SCHEMA_EXPORT/SYSTEM_GRANT
+Processing object type SCHEMA_EXPORT/ROLE_GRANT
+Processing object type SCHEMA_EXPORT/DEFAULT_ROLE
+Processing object type SCHEMA_EXPORT/PRE_SCHEMA/PROCACT_SCHEMA
+Processing object type SCHEMA_EXPORT/SEQUENCE/SEQUENCE
+Processing object type SCHEMA_EXPORT/TABLE/TABLE
+Processing object type SCHEMA_EXPORT/TABLE/INDEX/INDEX
+Processing object type SCHEMA_EXPORT/TABLE/CONSTRAINT/CONSTRAINT
+Processing object type SCHEMA_EXPORT/TABLE/INDEX/STATISTICS/INDEX_STATISTICS
+Processing object type SCHEMA_EXPORT/TABLE/COMMENT
+Processing object type SCHEMA_EXPORT/VIEW/VIEW
+Processing object type SCHEMA_EXPORT/TABLE/CONSTRAINT/REF_CONSTRAINT
+Processing object type SCHEMA_EXPORT/TABLE/TRIGGER
+Processing object type SCHEMA_EXPORT/TABLE/STATISTICS/TABLE_STATISTICS
+. . exported "POKEDB"."POKEMON"                          198.9 KB    1025 rows
+. . exported "POKEDB"."POKEMON_ITEMS"                    108.2 KB    1039 rows
+. . exported "POKEDB"."ABILITIES"                        25.39 KB     306 rows
+. . exported "POKEDB"."EVOLUTION_REQUIREMENTS"           19.07 KB     547 rows
+. . exported "POKEDB"."POKEMON_ABILITIES"                32.64 KB    2398 rows
+. . exported "POKEDB"."POKEMON_EVOLUTIONS"               13.17 KB     484 rows
+. . exported "POKEDB"."POKEMON_TYPES"                    21.91 KB    1551 rows
+. . exported "POKEDB"."TYPE_EFFECTIVENESS"               7.335 KB     119 rows
+. . exported "POKEDB"."TYPES"                            5.640 KB      19 rows
+Master table "POKEDB"."SYS_EXPORT_SCHEMA_01" successfully loaded/unloaded
+******************************************************************************
+Dump file set for POKEDB.SYS_EXPORT_SCHEMA_01 is:
+  C:\ORACLEXE\APP\ORACLE\ADMIN\XE\DPDUMP\SCHEMA_EXPORT.DMP
+Job "POKEDB"."SYS_EXPORT_SCHEMA_01" successfully completed at 12:42:19

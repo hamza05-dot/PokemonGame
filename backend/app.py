@@ -4,10 +4,24 @@ import oracledb
 import json
 import os
 import traceback
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.json.sort_keys = False
 CORS(app)
+
+# ========================
+# SIMPLE CACHE SYSTEM
+# ========================
+types_cache = {"data": None, "timestamp": None}
+abilities_cache = {"data": None, "timestamp": None}
+CACHE_DURATION = timedelta(minutes=10)
+
+def is_cache_valid(cache):
+    """Check if cache is valid"""
+    if cache["data"] and cache["timestamp"]:
+        return datetime.now() - cache["timestamp"] < CACHE_DURATION
+    return False
 
 # ========================
 # ENABLE THICK MODE FOR ORACLE 11g
@@ -293,6 +307,11 @@ def format_requirements(requirements):
 # ========================
 @app.route("/api/abilities")
 def get_all_abilities():
+    # Check cache first
+    if is_cache_valid(abilities_cache):
+        print("✓ Returning cached abilities")
+        return jsonify(abilities_cache["data"])
+    
     conn = get_connection()
     if not conn: return jsonify({"error": "DB Connection Failed"}), 500
     cur = conn.cursor()
@@ -304,6 +323,12 @@ def get_all_abilities():
             GROUP BY a.id, a.name, a.description ORDER BY a.name
         """)
         abilities = [{"id": r[0], "name": r[1], "description": r[2], "pokemon_count": r[3]} for r in cur.fetchall()]
+        
+        # Update cache
+        abilities_cache["data"] = abilities
+        abilities_cache["timestamp"] = datetime.now()
+        print(f"✓ Cached {len(abilities)} abilities")
+        
         return jsonify(abilities)
     finally:
         cur.close()
@@ -332,23 +357,36 @@ def get_ability_details(ability_id):
         conn.close()
 
 # ========================
-# API: GET ALL TYPES (case-insensitive)
+# API: GET ALL TYPES (OPTIMIZED WITH CACHE)
 # ========================
 @app.route("/api/types")
 def get_all_types():
+    # Check cache first
+    if is_cache_valid(types_cache):
+        print("✓ Returning cached types")
+        return jsonify(types_cache["data"])
+    
     conn = get_connection()
     if not conn: return jsonify({"error": "DB Connection Failed"}), 500
     cur = conn.cursor()
     try:
+        # OPTIMIZED QUERY: Use view (where type1/type2 exist) with subquery
         cur.execute("""
-            SELECT t.id, t.name, COUNT(DISTINCT p.id) 
+            SELECT t.id, t.name,
+                   (SELECT COUNT(DISTINCT p.id)
+                    FROM POKEMON_MASTER_VIEW p
+                    WHERE LOWER(p.type1) = LOWER(t.name) 
+                       OR LOWER(p.type2) = LOWER(t.name)) as pokemon_count
             FROM types t
-            LEFT JOIN POKEMON_MASTER_VIEW p 
-            ON LOWER(p.type1) = LOWER(t.name) OR LOWER(p.type2) = LOWER(t.name)
-            GROUP BY t.id, t.name
             ORDER BY t.name
         """)
         types = [{"id": r[0], "name": r[1], "pokemon_count": r[2]} for r in cur.fetchall()]
+        
+        # Update cache
+        types_cache["data"] = types
+        types_cache["timestamp"] = datetime.now()
+        print(f"✓ Cached {len(types)} types")
+        
         return jsonify(types)
     finally:
         cur.close()
@@ -365,6 +403,7 @@ def get_type_details(type_name):
         t_row = cur.fetchone()
         if not t_row: return jsonify({"error": f"Type '{type_name}' not found"}), 404
 
+        # Use POKEMON_MASTER_VIEW (where type1/type2 exist)
         cur.execute("""
             SELECT DISTINCT id, name, type1, type2 
             FROM POKEMON_MASTER_VIEW
@@ -383,8 +422,6 @@ def get_type_details(type_name):
     finally:
         cur.close()
         conn.close()
-
-
 
 def get_type_matchups(cur, type_id):
     cur.execute("SELECT id, name FROM types ORDER BY name")
@@ -436,6 +473,34 @@ def get_item_details(item_id):
         conn.close()
 
 # ========================
+# CACHE MANAGEMENT
+# ========================
+@app.route("/api/cache/clear")
+def clear_cache():
+    """Clear all caches - useful for development"""
+    types_cache["data"] = None
+    types_cache["timestamp"] = None
+    abilities_cache["data"] = None
+    abilities_cache["timestamp"] = None
+    return jsonify({"status": "Cache cleared"}), 200
+
+@app.route("/api/cache/status")
+def cache_status():
+    """Check cache status"""
+    return jsonify({
+        "types": {
+            "cached": types_cache["data"] is not None,
+            "valid": is_cache_valid(types_cache),
+            "timestamp": types_cache["timestamp"].isoformat() if types_cache["timestamp"] else None
+        },
+        "abilities": {
+            "cached": abilities_cache["data"] is not None,
+            "valid": is_cache_valid(abilities_cache),
+            "timestamp": abilities_cache["timestamp"].isoformat() if abilities_cache["timestamp"] else None
+        }
+    }), 200
+
+# ========================
 # HEALTH CHECK & START
 # ========================
 @app.route("/health")
@@ -448,4 +513,5 @@ def health_check():
 
 if __name__ == "__main__":
     print(f"🚀 Starting Flask Server on http://0.0.0.0:5000")
+    print(f"📦 Cache enabled: Types & Abilities (10 min TTL)")
     app.run(host="0.0.0.0", debug=False, port=5000)

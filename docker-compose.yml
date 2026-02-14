@@ -2,7 +2,7 @@ volumes: {}
 
 services:
   oracle-db:
-    image: wnameless/oracle-xe-11g-r2
+    image: hamza518/oracle-xe-11g-r2
     container_name: pokemon_oracle_db
     ports:
       - "1522:1521"
