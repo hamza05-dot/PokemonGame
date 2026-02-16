@@ -141,3 +141,9 @@
 2026/02/14 11:24:22 [notice] 1#1: start worker process 30
 2026/02/14 11:24:22 [notice] 1#1: start worker process 31
 2026/02/14 11:24:22 [notice] 1#1: start worker process 32
+2026/02/16 07:28:47 [warn] 1#1: conflicting server name "localhost" on 0.0.0.0:80, ignored
+2026/02/16 07:28:47 [notice] 1#1: using the "epoll" event method
+2026/02/16 07:28:47 [notice] 1#1: nginx/1.29.5
+2026/02/16 07:28:47 [notice] 1#1: built by gcc 15.2.0 (Alpine 15.2.0) 
+2026/02/16 07:28:47 [notice] 1#1: OS: Linux 6.6.87.2-microsoft-standard-WSL2
+2026/02/16 07:28:47 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
