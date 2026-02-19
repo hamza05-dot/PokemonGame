@@ -47,7 +47,10 @@ services:
     depends_on:
       - backend
     environment:
-      - DOCKER_BUILDKIT=0
+      - DB_HOST=oracle-db
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_SID=${DB_SID}
     ports:
       - "80:80"
     volumes:

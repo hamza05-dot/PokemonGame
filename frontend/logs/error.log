@@ -193,3 +193,42 @@
 2026/02/19 09:25:07 [notice] 1#1: built by gcc 15.2.0 (Alpine 15.2.0) 
 2026/02/19 09:25:07 [notice] 1#1: OS: Linux 6.6.87.2-microsoft-standard-WSL2
 2026/02/19 09:25:07 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2026/02/19 09:25:07 [notice] 1#1: start worker processes
+2026/02/19 09:25:07 [notice] 1#1: start worker process 30
+2026/02/19 09:25:07 [notice] 1#1: start worker process 31
+2026/02/19 09:25:07 [notice] 1#1: start worker process 32
+2026/02/19 09:25:07 [notice] 1#1: start worker process 33
+2026/02/19 10:10:39 [notice] 1#1: signal 3 (SIGQUIT) received, shutting down
+2026/02/19 10:10:39 [notice] 30#30: gracefully shutting down
+2026/02/19 10:10:39 [notice] 31#31: gracefully shutting down
+2026/02/19 10:10:39 [notice] 32#32: gracefully shutting down
+2026/02/19 10:10:39 [notice] 33#33: gracefully shutting down
+2026/02/19 10:10:39 [notice] 30#30: exiting
+2026/02/19 10:10:39 [notice] 32#32: exiting
+2026/02/19 10:10:39 [notice] 31#31: exiting
+2026/02/19 10:10:39 [notice] 33#33: exiting
+2026/02/19 10:10:39 [notice] 30#30: exit
+2026/02/19 10:10:39 [notice] 32#32: exit
+2026/02/19 10:10:39 [notice] 31#31: exit
+2026/02/19 10:10:39 [notice] 33#33: exit
+2026/02/19 10:10:39 [notice] 1#1: signal 17 (SIGCHLD) received from 32
+2026/02/19 10:10:39 [notice] 1#1: worker process 30 exited with code 0
+2026/02/19 10:10:39 [notice] 1#1: worker process 32 exited with code 0
+2026/02/19 10:10:39 [notice] 1#1: worker process 33 exited with code 0
+2026/02/19 10:10:40 [notice] 1#1: signal 29 (SIGIO) received
+2026/02/19 10:10:40 [notice] 1#1: signal 17 (SIGCHLD) received from 30
+2026/02/19 10:10:40 [notice] 1#1: worker process 31 exited with code 0
+2026/02/19 10:10:40 [notice] 1#1: exit
+2026/02/19 10:23:12 [emerg] 1#1: "server" directive is not allowed here in /etc/nginx/conf.d/default.conf:1
+2026/02/19 10:23:12 [emerg] 1#1: "server" directive is not allowed here in /etc/nginx/conf.d/default.conf:1
+2026/02/19 10:23:13 [emerg] 1#1: "server" directive is not allowed here in /etc/nginx/conf.d/default.conf:1
+2026/02/19 10:23:14 [emerg] 1#1: "server" directive is not allowed here in /etc/nginx/conf.d/default.conf:1
+2026/02/19 10:23:15 [emerg] 1#1: "server" directive is not allowed here in /etc/nginx/conf.d/default.conf:1
+2026/02/19 10:23:17 [emerg] 1#1: "server" directive is not allowed here in /etc/nginx/conf.d/default.conf:1
+2026/02/19 10:23:21 [emerg] 1#1: "server" directive is not allowed here in /etc/nginx/conf.d/default.conf:1
+2026/02/19 10:23:28 [emerg] 1#1: "server" directive is not allowed here in /etc/nginx/conf.d/default.conf:1
+2026/02/19 10:23:41 [emerg] 1#1: "server" directive is not allowed here in /etc/nginx/conf.d/default.conf:1
+2026/02/19 10:24:07 [emerg] 1#1: "server" directive is not allowed here in /etc/nginx/conf.d/default.conf:1
+2026/02/19 10:24:59 [emerg] 1#1: "server" directive is not allowed here in /etc/nginx/conf.d/default.conf:1
+2026/02/19 10:25:59 [emerg] 1#1: "server" directive is not allowed here in /etc/nginx/conf.d/default.conf:1
+2026/02/19 10:33:34 [warn] 11#11: conflicting server name "localhost" on 0.0.0.0:80, ignored
