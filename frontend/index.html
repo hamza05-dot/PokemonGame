@@ -8,6 +8,125 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="navigation.css">
+    <style>
+        /* Position Grid Styles */
+        .position-grid-container {
+            margin-top: 10px;
+        }
+        
+        .position-grid {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        
+        .position-square {
+            width: 45px;
+            height: 45px;
+            background: #ecf0f1;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #95a5a6;
+            user-select: none;
+            position: relative;
+        }
+        
+        .position-square:hover {
+            border-color: #3498db;
+            transform: scale(1.08);
+        }
+        
+        .position-square.focused {
+            border-color: #2ecc71;
+            border-width: 3px;
+            box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.2);
+            animation: pulse 1.5s infinite;
+        }
+        
+        .position-square.letter {
+            background: #3498db;
+            color: white;
+        }
+        
+        .position-square.empty {
+            background: #ecf0f1;
+            color: #95a5a6;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 0 6px rgba(46, 204, 113, 0.1);
+            }
+        }
+        
+        .position-info {
+            font-size: 0.75rem;
+            color: #7f8c8d;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+        
+        .position-legend {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: #7f8c8d;
+        }
+        
+        .legend-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid #bdc3c7;
+        }
+        
+        .reset-grid-btn {
+            margin-top: 10px;
+            padding: 8px 14px;
+            background: #95a5a6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .reset-grid-btn:hover {
+            background: #7f8c8d;
+            transform: translateY(-1px);
+        }
+        
+        .position-disabled-msg {
+            color: #95a5a6;
+            font-size: 0.85rem;
+            font-style: italic;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
 <!-- NAVIGATION BAR -->
@@ -73,7 +192,7 @@
                 <label>⚡ Type</label>
                 <select id="type-filter" onchange="searchPokemon()">
                     <option value="">All Types</option>
-                    <option value="grass">🍀 Grass</option>
+                    <option value="grass">🌿 Grass</option>
                     <option value="fire">🔥 Fire</option>
                     <option value="water">💧 Water</option>
                     <option value="bug">🐛 Bug</option>
@@ -147,7 +266,7 @@
 
         <!-- Name Advanced Filters Section -->
         <div id="name-advanced-filters" class="advanced-filters" style="display: none;">
-            <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 1.1rem;">🔍 Advanced Name Filters</h3>
+            <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 1.1rem;">🔎 Advanced Name Filters</h3>
             
             <div class="filter-grid">
                 <div class="input-group">
@@ -166,13 +285,42 @@
                 </div>
 
                 <div class="input-group">
-                    <label>📍 Position</label>
-                    <input type="text" id="position" placeholder="_ i _ a _ _" oninput="searchPokemon()">
-                </div>
-
-                <div class="input-group">
                     <label>📏 Name Length</label>
-                    <input type="number" id="length" placeholder="6" min="1" max="15" oninput="searchPokemon()">
+                    <input type="number" id="length" placeholder="6" min="1" max="15" oninput="updatePositionGrid()" onchange="updatePositionGrid()">
+                </div>
+            </div>
+
+            <!-- Position Grid -->
+            <div class="input-group" style="margin-top: 20px;">
+                <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #2c3e50;">
+                    🎯 Position Pattern
+                </label>
+                
+                <div class="position-grid-container">
+                    <div id="position-grid" class="position-grid">
+                        <div class="position-disabled-msg">
+                            Set "Name Length" above to activate position pattern
+                        </div>
+                    </div>
+                    
+                    <div class="position-info">
+                        💡 <strong>How to use:</strong> Click on a square and type a letter (a-z) or hyphen (-). Leave empty for any character.
+                    </div>
+                    
+                    <div class="position-legend">
+                        <div class="legend-item">
+                            <div class="legend-box" style="background: #3498db;"></div>
+                            <span>Letter/Hyphen (must match exactly)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-box" style="background: #ecf0f1;"></div>
+                            <span>Empty (any character)</span>
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="reset-grid-btn" onclick="resetPositionGrid()">
+                        🔄 Reset Grid
+                    </button>
                 </div>
             </div>
         </div>

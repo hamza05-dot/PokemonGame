@@ -1,6 +1,11 @@
 let pokemonData = []
 let sortOrder = 'desc'; // 'asc' or 'desc'
 
+// Position Grid Variables
+let positionGridLength = 0;
+let positionPattern = [];
+let currentFocusedIndex = -1;
+
 const typeColors = {
     grass: "#78C850",
     fire: "#F08030",
@@ -135,6 +140,160 @@ async function loadPokedex() {
     }
 }
 
+// Position Grid Functions
+function updatePositionGrid() {
+    const lengthInput = document.getElementById("length");
+    if (!lengthInput) return;
+    
+    const length = parseInt(lengthInput.value) || 0;
+    const gridContainer = document.getElementById("position-grid");
+    
+    if (!gridContainer) return;
+    
+    if (length === 0 || length > 15) {
+        gridContainer.innerHTML = '<div class="position-disabled-msg">Set "Name Length" above to activate position pattern</div>';
+        positionPattern = [];
+        positionGridLength = 0;
+        currentFocusedIndex = -1;
+        searchPokemon();
+        return;
+    }
+    
+    // Only update if length changed
+    if (length === positionGridLength && positionPattern.length > 0) {
+        searchPokemon();
+        return;
+    }
+    
+    positionGridLength = length;
+    positionPattern = Array(length).fill('');
+    currentFocusedIndex = -1;
+    
+    gridContainer.innerHTML = '';
+    
+    for (let i = 0; i < length; i++) {
+        const square = document.createElement('div');
+        square.className = 'position-square empty';
+        square.dataset.index = i;
+        square.textContent = '·';
+        square.onclick = () => focusSquare(i);
+        gridContainer.appendChild(square);
+    }
+    
+    console.log('Position grid updated with length:', length);
+    searchPokemon();
+}
+
+function focusSquare(index) {
+    // Remove focus from all squares
+    document.querySelectorAll('.position-square').forEach(sq => {
+        sq.classList.remove('focused');
+    });
+    
+    // Add focus to current square
+    const squares = document.querySelectorAll('.position-square');
+    if (squares[index]) {
+        squares[index].classList.add('focused');
+        currentFocusedIndex = index;
+    }
+}
+
+function updateSquareDisplay(index) {
+    const squares = document.querySelectorAll('.position-square');
+    if (squares[index]) {
+        const value = positionPattern[index];
+        
+        // Remove all type classes
+        squares[index].classList.remove('letter', 'empty');
+        
+        // Display and style based on value
+        if (value === '' || value === null) {
+            squares[index].classList.add('empty');
+            squares[index].textContent = '·';
+        } else {
+            squares[index].classList.add('letter');
+            squares[index].textContent = value.toUpperCase();
+        }
+    }
+}
+
+function resetPositionGrid() {
+    if (positionGridLength === 0) return;
+    
+    positionPattern = Array(positionGridLength).fill('');
+    document.querySelectorAll('.position-square').forEach((sq, i) => {
+        sq.textContent = '·';
+        sq.classList.remove('letter', 'focused');
+        sq.classList.add('empty');
+    });
+    currentFocusedIndex = -1;
+    searchPokemon();
+}
+
+// Keyboard event handler for position grid
+document.addEventListener('keydown', (e) => {
+    // Only handle if a square is focused
+    if (currentFocusedIndex === -1) {
+        // Check for Ctrl/Cmd + K shortcut for clearing filters
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            clearFilters();
+        }
+        return;
+    }
+    
+    const key = e.key.toLowerCase();
+    
+    // Letter (a-z) or hyphen (-) - set the character
+    if ((key.length === 1 && key >= 'a' && key <= 'z') || key === '-') {
+        e.preventDefault();
+        positionPattern[currentFocusedIndex] = key;
+        updateSquareDisplay(currentFocusedIndex);
+        
+        // Move to next square
+        if (currentFocusedIndex < positionGridLength - 1) {
+            focusSquare(currentFocusedIndex + 1);
+        }
+        searchPokemon();
+    }
+    // Backspace or Delete - clear the square (make it empty/wildcard)
+    else if (key === 'backspace' || key === 'delete') {
+        e.preventDefault();
+        positionPattern[currentFocusedIndex] = '';
+        updateSquareDisplay(currentFocusedIndex);
+        
+        // Move to previous square on backspace
+        if (key === 'backspace' && currentFocusedIndex > 0) {
+            focusSquare(currentFocusedIndex - 1);
+        }
+        searchPokemon();
+    }
+    // Space - clear the square and stay
+    else if (key === ' ') {
+        e.preventDefault();
+        positionPattern[currentFocusedIndex] = '';
+        updateSquareDisplay(currentFocusedIndex);
+        searchPokemon();
+    }
+    // Arrow keys for navigation
+    else if (key === 'arrowright' && currentFocusedIndex < positionGridLength - 1) {
+        e.preventDefault();
+        focusSquare(currentFocusedIndex + 1);
+    }
+    else if (key === 'arrowleft' && currentFocusedIndex > 0) {
+        e.preventDefault();
+        focusSquare(currentFocusedIndex - 1);
+    }
+    // Escape to unfocus
+    else if (key === 'escape') {
+        e.preventDefault();
+        document.querySelectorAll('.position-square').forEach(sq => {
+            sq.classList.remove('focused');
+        });
+        currentFocusedIndex = -1;
+    }
+});
+
 function toggleSortOrder() {
     sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
     const btn = document.getElementById('sort-order-btn');
@@ -150,7 +309,6 @@ function searchPokemon() {
     const include = document.getElementById("include").value.toLowerCase()
     const exclude = document.getElementById("exclude").value.toLowerCase()
     const length = parseInt(document.getElementById("length").value)
-    const position = document.getElementById("position").value.toLowerCase()
     const type = document.getElementById("type-filter").value.toLowerCase().trim()
     const region = document.getElementById("region-filter").value.toLowerCase().trim()
     const legendary = document.getElementById("legendary-filter").value
@@ -178,7 +336,16 @@ function searchPokemon() {
         if (include && ![...include].every(c => n.includes(c))) return false
         if (exclude.split(",").some(c => c && n.includes(c.trim()))) return false
         if (length && n.length !== length) return false
-        if (position && [...position].some((c, i) => c !== "_" && n[i] !== c)) return false
+        
+        // Position pattern filter (using grid)
+        if (positionPattern.length > 0) {
+            for (let i = 0; i < positionPattern.length; i++) {
+                const pattern = positionPattern[i];
+                if (!pattern || pattern === '') continue; // Empty = wildcard, any letter is OK
+                if (n[i] !== pattern) return false; // Must match the letter exactly
+            }
+        }
+        
         if (type && p.type1 !== type && p.type2 !== type) return false
         if (region && p.region !== region) return false
         if (legendary !== "" && String(p.legendary) !== legendary) return false
@@ -359,6 +526,16 @@ function clearFilters() {
             e.value = "";
         }
     });
+    
+    // Reset position grid
+    positionPattern = [];
+    positionGridLength = 0;
+    currentFocusedIndex = -1;
+    const gridContainer = document.getElementById("position-grid");
+    if (gridContainer) {
+        gridContainer.innerHTML = '<div class="position-disabled-msg">Set "Name Length" above to activate position pattern</div>';
+    }
+    
     searchPokemon()
     
     // Visual feedback
@@ -373,6 +550,14 @@ function clearFilters() {
 
 // Initialize on page load
 loadPokedex()
+
+// Initialize position grid when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    const lengthInput = document.getElementById("length");
+    if (lengthInput) {
+        lengthInput.addEventListener('input', updatePositionGrid);
+    }
+});
 
 // Toggle name advanced filters
 function toggleNameAdvancedFilters() {
@@ -401,14 +586,6 @@ function toggleAdvancedFilters() {
         toggleText.textContent = '▼ Show Advanced Filters'
     }
 }
-
-// Add keyboard shortcut for clearing filters (Ctrl/Cmd + K)
-document.addEventListener('keydown', (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault()
-        clearFilters()
-    }
-})
 
 // Toggle hamburger menu
 function toggleMenu() {
